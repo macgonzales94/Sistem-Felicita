@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FELICITA - Configuración del Sistema</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+            <div class="sidebar-brand-icon">
+                <i class="fas fa-cut"></i>
+            </div>
+            <div class="sidebar-brand-text mx-3">FELICITA Admin</div>
+        </a>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-heading">
+            Principal
+        </div>
+
+        <ul class="nav-item">
+            <li>
+                <a class="nav-link" th:href="@{/admin/dashboard}">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+        </ul>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-heading">
+            Gestión
+        </div>
+
+        <ul class="nav-item">
+            <li>
+                <a class="nav-link" th:href="@{/admin/usuarios}">
+                    <i class="fas fa-fw fa-users"></i>
+                    <span>Usuarios</span>
+                </a>
+            </li>
+            <li>
+                <a class="nav-link" th:href="@{/admin/establecimientos}">
+                    <i class="fas fa-fw fa-store"></i>
+                    <span>Establecimientos</span>
+                </a>
+            </li>
+        </ul>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-heading">
+            Métricas
+        </div>
+
+        <ul class="nav-item">
+            <li>
+                <a class="nav-link" th:href="@{/admin/reportes}">
+                    <i class="fas fa-fw fa-chart-area"></i>
+                    <span>Reportes</span>
+                </a>
+            </li>
+        </ul>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-heading">
+            Sistema
+        </div>
+
+        <ul class="nav-item">
+            <li>
+                <a class="nav-link" th:href="@{/admin/configuracion}">
+                    <i class="fas fa-fw fa-cog"></i>
+                    <span>Configuración</span>
+                </a>
+            </li>
+        </ul>
+        
+        <hr class="sidebar-divider">
+        
+        <!-- Botón para cerrar sesión -->
+        <div class="text-center mt-3 mb-3">
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn btn-danger btn-sm">
+                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="content">
+        <!-- Barra superior -->
+        <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+            <!-- Botón Sidebar Toggle (Topbar) -->
+            <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3 sidebar-toggle">
+                <i class="fa fa-bars"></i>
+            </button>
+
+            <!-- Topbar Navbar -->
+            <ul class="navbar-nav ml-auto">
+                <!-- Información de usuario -->
+                <li class="nav-item dropdown no-arrow">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="mr-2 d-none d-lg-inline text-gray-600 small" sec:authentication="name">Usuario</span>
+                        <img class="img-profile rounded-circle" src="https://via.placeholder.com/60">
+                    </a>
+                    <!-- Dropdown - Información de usuario -->
+                    <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                        aria-labelledby="userDropdown">
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Perfil
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="dropdown-item">
+                                <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                Cerrar sesión
+                            </button>
+                        </form>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Inicio del contenido de la página -->
+        <div class="container-fluid">
+            <!-- Alertas -->
+            <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${mensaje}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Titulo de página -->
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Configuración del Sistema</h1>
+            </div>
+
+            <!-- Configuración del Sistema -->
+            <div class="row">
+                <!-- Navegación de pestañas -->
+                <div class="col-lg-12">
+                    <ul class="nav nav-tabs" id="configTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab" aria-controls="general" aria-selected="true">General</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="seguridad-tab" data-bs-toggle="tab" data-bs-target="#seguridad" type="button" role="tab" aria-controls="seguridad" aria-selected="false">Seguridad</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="notificaciones-tab" data-bs-toggle="tab" data-bs-target="#notificaciones" type="button" role="tab" aria-controls="notificaciones" aria-selected="false">Notificaciones</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="backup-tab" data-bs-toggle="tab" data-bs-target="#backup" type="button" role="tab" aria-controls="backup" aria-selected="false">Respaldo</button>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Contenido de pestañas -->
+                <div class="col-lg-12 mt-4">
+                    <div class="tab-content" id="configTabsContent">
+                        <!-- Pestaña de Configuración General -->
+                        <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Configuración General</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="configGeneralForm">
+                                        <div class="mb-3">
+                                            <label for="nombreSistema" class="form-label">Nombre del Sistema</label>
+                                            <input type="text" class="form-control" id="nombreSistema" value="FELICITA">
+                                            <div class="form-text">Este nombre aparecerá en toda la plataforma.</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="urlSistema" class="form-label">URL del Sistema</label>
+                                            <input type="text" class="form-control" id="urlSistema" value="https://felicita.com">
+                                            <div class="form-text">URL base para todos los enlaces del sistema.</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="emailContacto" class="form-label">Email de Contacto</label>
+                                            <input type="email" class="form-control" id="emailContacto" value="contacto@felicita.com">
+                                            <div class="form-text">Email principal para notificaciones del sistema.</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="telefonoContacto" class="form-label">Teléfono de Contacto</label>
+                                            <input type="text" class="form-control" id="telefonoContacto" value="+51 987654321">
+                                            <div class="form-text">Teléfono de contacto para soporte.</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="zonaHoraria" class="form-label">Zona Horaria</label>
+                                            <select class="form-select" id="zonaHoraria">
+                                                <option value="America/Lima" selected>América/Lima (GMT-5)</option>
+                                                <option value="America/Bogota">América/Bogotá (GMT-5)</option>
+                                                <option value="America/Santiago">América/Santiago (GMT-4/GMT-3)</option>
+                                                <option value="America/Buenos_Aires">América/Buenos Aires (GMT-3)</option>
+                                                <option value="America/Mexico_City">América/Ciudad de México (GMT-6/GMT-5)</option>
+                                            </select>
+                                            <div class="form-text">Zona horaria para fechas y horas del sistema.</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="moneda" class="form-label">Moneda Predeterminada</label>
+                                            <select class="form-select" id="moneda">
+                                                <option value="PEN" selected>Soles Peruanos (S/)</option>
+                                                <option value="USD">Dólares Estadounidenses ($)</option>
+                                                <option value="EUR">Euros (€)</option>
+                                                <option value="COP">Pesos Colombianos ($)</option>
+                                                <option value="MXN">Pesos Mexicanos ($)</option>
+                                            </select>
+                                            <div class="form-text">Moneda para mostrar precios y pagos.</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="idiomaPredeterminado" class="form-label">Idioma Predeterminado</label>
+                                            <select class="form-select" id="idiomaPredeterminado">
+                                                <option value="es" selected>Español</option>
+                                                <option value="en">Inglés</option>
+                                                <option value="pt">Portugués</option>
+                                            </select>
+                                            <div class="form-text">Idioma predeterminado para nuevos usuarios.</div>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pestaña de Seguridad -->
+                        <div class="tab-pane fade" id="seguridad" role="tabpanel" aria-labelledby="seguridad-tab">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Configuración de Seguridad</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="configSeguridadForm">
+                                        <div class="mb-3">
+                                            <label for="tiempoSesion" class="form-label">Tiempo de Sesión</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="tiempoSesion" value="30">
+                                                <span class="input-group-text">minutos</span>
+                                            </div>
+                                            <div class="form-text">Tiempo de inactividad antes de cerrar sesión automáticamente.</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="intentosLogin" class="form-label">Intentos de Inicio de Sesión</label>
+                                            <input type="number" class="form-control" id="intentosLogin" value="5">
+                                            <div class="form-text">Número de intentos fallidos antes de bloquear cuenta.</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="tiempoBloqueo" class="form-label">Tiempo de Bloqueo</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="tiempoBloqueo" value="15">
+                                                <span class="input-group-text">minutos</span>
+                                            </div>
+                                            <div class="form-text">Tiempo de bloqueo tras múltiples intentos fallidos.</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="verificacionDosPasos" checked>
+                                                <label class="form-check-label" for="verificacionDosPasos">Verificación de dos pasos</label>
+                                            </div>
+                                            <div class="form-text">Habilitar verificación de dos pasos para administradores.</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="politicaContrasenas" checked>
+                                                <label class="form-check-label" for="politicaContrasenas">Política de contraseñas seguras</label>
+                                            </div>
+                                            <div class="form-text">Requerir contraseñas seguras (mínimo 8 caracteres, mayúsculas, minúsculas, números y símbolos).</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="vencimientoContrasena" class="form-label">Vencimiento de Contraseña</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="vencimientoContrasena" value="90">
+                                                <span class="input-group-text">días</span>
+                                            </div>
+                                            <div class="form-text">Días hasta que se solicite cambio de contraseña.</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="registroAuditoria" checked>
+                                                <label class="form-check-label" for="registroAuditoria">Registro de auditoría</label>
+                                            </div>
+                                            <div class="form-text">Mantener registro detallado de las acciones de usuarios administradores.</div>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pestaña de Notificaciones -->
+                        <div class="tab-pane fade" id="notificaciones" role="tabpanel" aria-labelledby="notificaciones-tab">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Configuración de Notificaciones</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="configNotificacionesForm">
+                                        <div class="mb-4">
+                                            <h5>Configuración de Email</h5>
+                                            <div class="mb-3">
+                                                <label for="servidorSMTP" class="form-label">Servidor SMTP</label>
+                                                <input type="text" class="form-control" id="servidorSMTP" value="smtp.gmail.com">
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label for="puertoSMTP" class="form-label">Puerto SMTP</label>
+                                                <input type="number" class="form-control" id="puertoSMTP" value="587">
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label for="usuarioSMTP" class="form-label">Usuario SMTP</label>
+                                                <input type="email" class="form-control" id="usuarioSMTP" value="notificaciones@felicita.com">
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label for="contrasenaSMTP" class="form-label">Contraseña SMTP</label>
+                                                <input type="password" class="form-control" id="contrasenaSMTP" value="************">
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="usarSSL" checked>
+                                                    <label class="form-check-label" for="usarSSL">Usar SSL/TLS</label>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <button type="button" class="btn btn-secondary" id="btnProbarEmail">
+                                                    <i class="fas fa-paper-plane me-2"></i> Enviar Email de Prueba
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-4">
+                                            <h5>Eventos de Notificación</h5>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="notificarNuevoUsuario" checked>
+                                                    <label class="form-check-label" for="notificarNuevoUsuario">Nuevo Usuario Registrado</label>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="notificarNuevoEstablecimiento" checked>
+                                                    <label class="form-check-label" for="notificarNuevoEstablecimiento">Nuevo Establecimiento Registrado</label>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="notificarNuevaCita" checked>
+                                                    <label class="form-check-label" for="notificarNuevaCita">Nueva Cita Agendada</label>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="notificarCitaCancelada" checked>
+                                                    <label class="form-check-label" for="notificarCitaCancelada">Cita Cancelada</label>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="notificarIntentosLogin" checked>
+                                                    <label class="form-check-label" for="notificarIntentosLogin">Múltiples Intentos Fallidos de Inicio de Sesión</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pestaña de Respaldo -->
+                        <div class="tab-pane fade" id="backup" role="tabpanel" aria-labelledby="backup-tab">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Respaldo del Sistema</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-4">
+                                        <h5>Respaldo Manual</h5>
+                                        <p>Realiza un respaldo manual de la base de datos y archivos del sistema.</p>
+                                        <button type="button" class="btn btn-primary" id="btnRespaldoManual">
+                                            <i class="fas fa-download me-2"></i> Iniciar Respaldo Manual
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h5>Respaldo Automático</h5>
+                                        <div class="mb-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="respaldoAutomatico" checked>
+                                                <label class="form-check-label" for="respaldoAutomatico">Activar Respaldo Automático</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="frecuenciaRespaldo" class="form-label">Frecuencia de Respaldo</label>
+                                            <select class="form-select" id="frecuenciaRespaldo">
+                                                <option value="diario">Diario</option>
+                                                <option value="semanal" selected>Semanal</option>
+                                                <option value="mensual">Mensual</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="horaRespaldo" class="form-label">Hora de Respaldo</label>
+                                            <input type="time" class="form-control" id="horaRespaldo" value="03:00">
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="retencionRespaldo" class="form-label">Retención de Respaldos</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="retencionRespaldo" value="30">
+                                                <span class="input-group-text">días</span>
+                                            </div>
+                                            <div class="form-text">Tiempo máximo de retención de respaldos antiguos.</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h5>Respaldos Recientes</h5>
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Fecha</th>
+                                                        <th>Tipo</th>
+                                                        <th>Tamaño</th>
+                                                        <th>Estado</th>
+                                                        <th>Acciones</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>10/05/2025 03:00</td>
+                                                        <td>Automático</td>
+                                                        <td>256 MB</td>
+                                                        <td><span class="badge bg-success">Completado</span></td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-primary"><i class="fas fa-download"></i></button>
+                                                            <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>03/05/2025 03:00</td>
+                                                        <td>Automático</td>
+                                                        <td>255 MB</td>
+                                                        <td><span class="badge bg-success">Completado</span></td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-primary"><i class="fas fa-download"></i></button>
+                                                            <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>01/05/2025 15:32</td>
+                                                        <td>Manual</td>
+                                                        <td>254 MB</td>
+                                                        <td><span class="badge bg-success">Completado</span></td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-primary"><i class="fas fa-download"></i></button>
+                                                            <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h5>Restaurar Sistema</h5>
+                                        <p class="text-danger">¡Atención! La restauración del sistema sobrescribirá todos los datos actuales.</p>
+                                        <div class="mb-3">
+                                            <label for="archivoRestauracion" class="form-label">Archivo de Restauración</label>
+                                            <input class="form-control" type="file" id="archivoRestauracion">
+                                        </div>
+                                        <button type="button" class="btn btn-warning" id="btnRestaurarSistema">
+                                            <i class="fas fa-undo me-2"></i> Restaurar Sistema
+                                        </button>
+                                    </div>
+                                    
+                                    <button type="button" class="btn btn-primary" id="btnGuardarConfigRespaldo">Guardar Configuración</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Fin del contenido de la página -->
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/admin.js}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configuración de formularios
+            document.getElementById('configGeneralForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                guardarConfiguracion('general');
+            });
+            
+            document.getElementById('configSeguridadForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                guardarConfiguracion('seguridad');
+            });
+            
+            document.getElementById('configNotificacionesForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                guardarConfiguracion('notificaciones');
+            });
+            
+            document.getElementById('btnGuardarConfigRespaldo').addEventListener('click', function() {
+                guardarConfiguracion('respaldo');
+            });
+            
+            // Botón para probar email
+            document.getElementById('btnProbarEmail').addEventListener('click', function() {
+                probarEnvioEmail();
+            });
+            
+            // Botón para respaldo manual
+            document.getElementById('btnRespaldoManual').addEventListener('click', function() {
+                iniciarRespaldoManual();
+            });
+            
+            // Botón para restaurar sistema
+            document.getElementById('btnRestaurarSistema').addEventListener('click', function() {
+                if (confirm('¿Está seguro de querer restaurar el sistema? Esta acción eliminará todos los datos actuales.')) {
+                    restaurarSistema();
+                }
+            });
+        });
+        
+        // Función para guardar configuración
+        function guardarConfiguracion(seccion) {
+            // Obtener datos según la sección
+            let datos = {};
+            
+            switch(seccion) {
+                case 'general':
+                    datos = {
+                        nombreSistema: document.getElementById('nombreSistema').value,
+                        urlSistema: document.getElementById('urlSistema').value,
+                        emailContacto: document.getElementById('emailContacto').value,
+                        telefonoContacto: document.getElementById('telefonoContacto').value,
+                        zonaHoraria: document.getElementById('zonaHoraria').value,
+                        moneda: document.getElementById('moneda').value,
+                        idiomaPredeterminado: document.getElementById('idiomaPredeterminado').value
+                    };
+                    break;
+                    
+                case 'seguridad':
+                    datos = {
+                        tiempoSesion: document.getElementById('tiempoSesion').value,
+                        intentosLogin: document.getElementById('intentosLogin').value,
+                        tiempoBloqueo: document.getElementById('tiempoBloqueo').value,
+                        verificacionDosPasos: document.getElementById('verificacionDosPasos').checked,
+                        politicaContrasenas: document.getElementById('politicaContrasenas').checked,
+                        vencimientoContrasena: document.getElementById('vencimientoContrasena').value,
+                        registroAuditoria: document.getElementById('registroAuditoria').checked
+                    };
+                    break;
+                    
+                case 'notificaciones':
+                    datos = {
+                        servidorSMTP: document.getElementById('servidorSMTP').value,
+                        puertoSMTP: document.getElementById('puertoSMTP').value,
+                        usuarioSMTP: document.getElementById('usuarioSMTP').value,
+                        contrasenaSMTP: document.getElementById('contrasenaSMTP').value,
+                        usarSSL: document.getElementById('usarSSL').checked,
+                        notificarNuevoUsuario: document.getElementById('notificarNuevoUsuario').checked,
+                        notificarNuevoEstablecimiento: document.getElementById('notificarNuevoEstablecimiento').checked,
+                        notificarNuevaCita: document.getElementById('notificarNuevaCita').checked,
+                        notificarCitaCancelada: document.getElementById('notificarCitaCancelada').checked,
+                        notificarIntentosLogin: document.getElementById('notificarIntentosLogin').checked
+                    };
+                    break;
+                    
+                case 'respaldo':
+                    datos = {
+                        respaldoAutomatico: document.getElementById('respaldoAutomatico').checked,
+                        frecuenciaRespaldo: document.getElementById('frecuenciaRespaldo').value,
+                        horaRespaldo: document.getElementById('horaRespaldo').value,
+                        retencionRespaldo: document.getElementById('retencionRespaldo').value
+                    };
+                    break;
+            }
+            
+            // Enviar datos al servidor
+            fetch(`/admin/configuracion/guardar/${seccion}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(datos)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exitoso) {
+                    mostrarAlerta('Configuración guardada correctamente', 'success');
+                } else {
+                    mostrarAlerta('Error al guardar la configuración: ' + data.mensaje, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarAlerta('Error al guardar la configuración', 'danger');
+            });
+        }
+        
+        // Función para probar envío de email
+        function probarEnvioEmail() {
+            const datos = {
+                servidorSMTP: document.getElementById('servidorSMTP').value,
+                puertoSMTP: document.getElementById('puertoSMTP').value,
+                usuarioSMTP: document.getElementById('usuarioSMTP').value,
+                contrasenaSMTP: document.getElementById('contrasenaSMTP').value,
+                usarSSL: document.getElementById('usarSSL').checked
+            };
+            
+            fetch('/admin/configuracion/probar-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(datos)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exitoso) {
+                    mostrarAlerta('Email de prueba enviado correctamente', 'success');
+                } else {
+                    mostrarAlerta('Error al enviar email de prueba: ' + data.mensaje, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarAlerta('Error al enviar email de prueba', 'danger');
+            });
+        }
+        
+        // Función para iniciar respaldo manual
+        function iniciarRespaldoManual() {
+            fetch('/admin/configuracion/respaldo-manual', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exitoso) {
+                    mostrarAlerta('Respaldo manual iniciado correctamente', 'success');
+                    // Recargar la lista de respaldos después de un tiempo
+                    setTimeout(() => {
+                        location.reload();
+                    }, 5000);
+                } else {
+                    mostrarAlerta('Error al iniciar respaldo manual: ' + data.mensaje, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarAlerta('Error al iniciar respaldo manual', 'danger');
+            });
+        }
+        
+        // Función para restaurar sistema
+        function restaurarSistema() {
+            const archivoInput = document.getElementById('archivoRestauracion');
+            
+            if (!archivoInput.files || archivoInput.files.length === 0) {
+                mostrarAlerta('Debe seleccionar un archivo de respaldo para restaurar', 'warning');
+                return;
+            }
+            
+            const archivo = archivoInput.files[0];
+            const formData = new FormData();
+            formData.append('archivo', archivo);
+            
+            mostrarAlerta('Iniciando restauración del sistema. Por favor, no cierre esta ventana...', 'warning', false);
+            
+            fetch('/admin/configuracion/restaurar-sistema', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exitoso) {
+                    mostrarAlerta('Sistema restaurado correctamente. El sistema se reiniciará en breve...', 'success');
+                    // Redireccionar después de un tiempo
+                    setTimeout(() => {
+                        window.location.href = '/admin/dashboard';
+                    }, 5000);
+                } else {
+                    mostrarAlerta('Error al restaurar sistema: ' + data.mensaje, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarAlerta('Error al restaurar sistema', 'danger');
+            });
+        }
+        
+        // Función para mostrar alertas
+        function mostrarAlerta(mensaje, tipo, autoClose = true) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${mensaje}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Insertar la alerta al principio del contenedor
+            const container = document.querySelector('.container-fluid');
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            // Eliminar automáticamente después de 5 segundos si autoClose es true
+            if (autoClose) {
+                setTimeout(() => {
+                    const bsAlert = new bootstrap.Alert(alertDiv);
+                    bsAlert.close();
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>

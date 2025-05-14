@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FELICITA - Reportes del Sistema</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+            <div class="sidebar-brand-icon">
+                <i class="fas fa-cut"></i>
+            </div>
+            <div class="sidebar-brand-text mx-3">FELICITA Admin</div>
+        </a>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-heading">
+            Principal
+        </div>
+
+        <ul class="nav-item">
+            <li>
+                <a class="nav-link" th:href="@{/admin/dashboard}">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+        </ul>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-heading">
+            Gestión
+        </div>
+
+        <ul class="nav-item">
+            <li>
+                <a class="nav-link" th:href="@{/admin/usuarios}">
+                    <i class="fas fa-fw fa-users"></i>
+                    <span>Usuarios</span>
+                </a>
+            </li>
+            <li>
+                <a class="nav-link" th:href="@{/admin/establecimientos}">
+                    <i class="fas fa-fw fa-store"></i>
+                    <span>Establecimientos</span>
+                </a>
+            </li>
+        </ul>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-heading">
+            Métricas
+        </div>
+
+        <ul class="nav-item">
+            <li>
+                <a class="nav-link" th:href="@{/admin/reportes}">
+                    <i class="fas fa-fw fa-chart-area"></i>
+                    <span>Reportes</span>
+                </a>
+            </li>
+        </ul>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-heading">
+            Sistema
+        </div>
+
+        <ul class="nav-item">
+            <li>
+                <a class="nav-link" th:href="@{/admin/configuracion}">
+                    <i class="fas fa-fw fa-cog"></i>
+                    <span>Configuración</span>
+                </a>
+            </li>
+        </ul>
+        
+        <hr class="sidebar-divider">
+        
+        <!-- Botón para cerrar sesión -->
+        <div class="text-center mt-3 mb-3">
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn btn-danger btn-sm">
+                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="content">
+        <!-- Barra superior -->
+        <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+            <!-- Botón Sidebar Toggle (Topbar) -->
+            <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3 sidebar-toggle">
+                <i class="fa fa-bars"></i>
+            </button>
+
+            <!-- Topbar Navbar -->
+            <ul class="navbar-nav ml-auto">
+                <!-- Información de usuario -->
+                <li class="nav-item dropdown no-arrow">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="mr-2 d-none d-lg-inline text-gray-600 small" sec:authentication="name">Usuario</span>
+                        <img class="img-profile rounded-circle" src="https://via.placeholder.com/60">
+                    </a>
+                    <!-- Dropdown - Información de usuario -->
+                    <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                        aria-labelledby="userDropdown">
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Perfil
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="dropdown-item">
+                                <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                Cerrar sesión
+                            </button>
+                        </form>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Inicio del contenido de la página -->
+        <div class="container-fluid">
+            <!-- Titulo de página -->
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Reportes del Sistema</h1>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary" id="btnGenerarPDF">
+                        <i class="fas fa-file-pdf me-2"></i> Exportar a PDF
+                    </button>
+                    <button type="button" class="btn btn-success" id="btnGenerarExcel">
+                        <i class="fas fa-file-excel me-2"></i> Exportar a Excel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtros de fecha -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Filtros de Fecha</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-5 mb-3">
+                            <label for="fechaInicio" class="form-label">Fecha Inicio</label>
+                            <input type="date" class="form-control" id="fechaInicio">
+                        </div>
+                        <div class="col-md-5 mb-3">
+                            <label for="fechaFin" class="form-label">Fecha Fin</label>
+                            <input type="date" class="form-control" id="fechaFin">
+                        </div>
+                        <div class="col-md-2 mb-3 d-flex align-items-end">
+                            <button type="button" class="btn btn-primary w-100" id="btnFiltrarFechas">
+                                <i class="fas fa-filter me-2"></i> Filtrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reportes de registros por período -->
+            <div class="row">
+                <div class="col-xl-12 col-lg-12">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">Registros por Período</h6>
+                            <div class="dropdown no-arrow">
+                                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                                    aria-labelledby="dropdownMenuLink">
+                                    <div class="dropdown-header">Opciones de Visualización:</div>
+                                    <a class="dropdown-item" href="#" id="verMensual">Mensual</a>
+                                    <a class="dropdown-item" href="#" id="verSemanal">Semanal</a>
+                                    <a class="dropdown-item" href="#" id="verDiario">Diario</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-area">
+                                <canvas id="registrosPeriodoChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reportes de Usuarios y Establecimientos -->
+            <div class="row">
+                <!-- Reporte de Usuarios por Rol -->
+                <div class="col-xl-6 col-lg-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Usuarios por Rol</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-pie mb-4">
+                                <canvas id="usuariosPorRolChart"></canvas>
+                            </div>
+                            <div class="mt-4 text-center small">
+                                <span class="mr-2">
+                                    <i class="fas fa-circle text-primary"></i> Clientes
+                                </span>
+                                <span class="mr-2">
+                                    <i class="fas fa-circle text-success"></i> Propietarios
+                                </span>
+                                <span class="mr-2">
+                                    <i class="fas fa-circle text-info"></i> Administradores
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reporte de Establecimientos por Tipo -->
+                <div class="col-xl-6 col-lg-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Establecimientos por Tipo</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-pie mb-4">
+                                <canvas id="establecimientosPorTipoChart"></canvas>
+                            </div>
+                            <div class="mt-4 text-center small">
+                                <span class="mr-2">
+                                    <i class="fas fa-circle text-primary"></i> Barberías
+                                </span>
+                                <span class="mr-2">
+                                    <i class="fas fa-circle text-success"></i> Salones de Belleza
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de resumen de estadísticas -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Resumen de Estadísticas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Categoría</th>
+                                    <th>Total</th>
+                                    <th>Activos</th>
+                                    <th>Inactivos</th>
+                                    <th>% Actividad</th>
+                                    <th>Fecha Última Actualización</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Usuarios</td>
+                                    <td id="totalUsuarios">0</td>
+                                    <td id="usuariosActivos">0</td>
+                                    <td id="usuariosInactivos">0</td>
+                                    <td id="porcentajeUsuarios">0%</td>
+                                    <td id="fechaUsuarios">-</td>
+                                </tr>
+                                <tr>
+                                    <td>Clientes</td>
+                                    <td id="totalClientes">0</td>
+                                    <td id="clientesActivos">0</td>
+                                    <td id="clientesInactivos">0</td>
+                                    <td id="porcentajeClientes">0%</td>
+                                    <td id="fechaClientes">-</td>
+                                </tr>
+                                <tr>
+                                    <td>Propietarios</td>
+                                    <td id="totalPropietarios">0</td>
+                                    <td id="propietariosActivos">0</td>
+                                    <td id="propietariosInactivos">0</td>
+                                    <td id="porcentajePropietarios">0%</td>
+                                    <td id="fechaPropietarios">-</td>
+                                </tr>
+                                <tr>
+                                    <td>Establecimientos</td>
+                                    <td id="totalEstablecimientos">0</td>
+                                    <td id="establecimientosActivos">0</td>
+                                    <td id="establecimientosInactivos">0</td>
+                                    <td id="porcentajeEstablecimientos">0%</td>
+                                    <td id="fechaEstablecimientos">-</td>
+                                </tr>
+                                <tr>
+                                    <td>Barberías</td>
+                                    <td id="totalBarberias">0</td>
+                                    <td id="barberiasActivas">0</td>
+                                    <td id="barberiasInactivas">0</td>
+                                    <td id="porcentajeBarberias">0%</td>
+                                    <td id="fechaBarberias">-</td>
+                                </tr>
+                                <tr>
+                                    <td>Salones de Belleza</td>
+                                    <td id="totalSalones">0</td>
+                                    <td id="salonesActivos">0</td>
+                                    <td id="salonesInactivos">0</td>
+                                    <td id="porcentajeSalones">0%</td>
+                                    <td id="fechaSalones">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Fin del contenido de la página -->
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script th:src="@{/js/admin.js}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Establecer fechas por defecto (último mes)
+            const hoy = new Date();
+            const unMesAtras = new Date();
+            unMesAtras.setMonth(unMesAtras.getMonth() - 1);
+            
+            document.getElementById('fechaFin').valueAsDate = hoy;
+            document.getElementById('fechaInicio').valueAsDate = unMesAtras;
+            
+            // Cargar datos iniciales
+            cargarEstadisticas();
+            cargarGraficos();
+            
+            // Evento de filtrado por fechas
+            document.getElementById('btnFiltrarFechas').addEventListener('click', function() {
+                cargarEstadisticas();
+                cargarGraficos();
+            });
+            
+            // Eventos para cambiar vista de gráfico de registros
+            document.getElementById('verMensual').addEventListener('click', function(e) {
+                e.preventDefault();
+                actualizarGraficoRegistros('mensual');
+            });
+            
+            document.getElementById('verSemanal').addEventListener('click', function(e) {
+                e.preventDefault();
+                actualizarGraficoRegistros('semanal');
+            });
+            
+            document.getElementById('verDiario').addEventListener('click', function(e) {
+                e.preventDefault();
+                actualizarGraficoRegistros('diario');
+            });
+            
+            // Botones de exportación
+            document.getElementById('btnGenerarPDF').addEventListener('click', function() {
+                exportarReporte('pdf');
+            });
+            
+            document.getElementById('btnGenerarExcel').addEventListener('click', function() {
+                exportarReporte('excel');
+            });
+        });
+        
+        // Función para cargar estadísticas generales
+        function cargarEstadisticas() {
+            const fechaInicio = document.getElementById('fechaInicio').value;
+            const fechaFin = document.getElementById('fechaFin').value;
+            
+            fetch(`/admin/api/estadisticas?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Actualizar tabla de estadísticas
+                    actualizarTablaEstadisticas(data);
+                })
+                .catch(error => {
+                    console.error('Error al cargar estadísticas:', error);
+                    mostrarAlerta('Error al cargar estadísticas. Por favor, intenta nuevamente.', 'danger');
+                });
+        }
+        
+        // Función para actualizar la tabla de estadísticas
+        function actualizarTablaEstadisticas(data) {
+            // Usuarios
+            document.getElementById('totalUsuarios').textContent = data.datosAdicionales.totalUsuarios || 0;
+            document.getElementById('usuariosActivos').textContent = data.datosAdicionales.usuariosActivos || 0;
+            document.getElementById('usuariosInactivos').textContent = data.datosAdicionales.usuariosInactivos || 0;
+            
+            const porcentajeUsuarios = data.datosAdicionales.totalUsuarios > 0 ? 
+                ((data.datosAdicionales.usuariosActivos / data.datosAdicionales.totalUsuarios) * 100).toFixed(2) : 0;
+            document.getElementById('porcentajeUsuarios').textContent = porcentajeUsuarios + '%';
+            document.getElementById('fechaUsuarios').textContent = formatDate(new Date());
+            
+            // Clientes
+            document.getElementById('totalClientes').textContent = data.datosAdicionales.totalClientes || 0;
+            document.getElementById('clientesActivos').textContent = data.datosAdicionales.clientesActivos || 0;
+            document.getElementById('clientesInactivos').textContent = data.datosAdicionales.clientesInactivos || 0;
+            
+            const porcentajeClientes = data.datosAdicionales.totalClientes > 0 ? 
+                ((data.datosAdicionales.clientesActivos / data.datosAdicionales.totalClientes) * 100).toFixed(2) : 0;
+            document.getElementById('porcentajeClientes').textContent = porcentajeClientes + '%';
+            document.getElementById('fechaClientes').textContent = formatDate(new Date());
+            
+            // Propietarios
+            document.getElementById('totalPropietarios').textContent = data.datosAdicionales.totalProAdmins || 0;
+            document.getElementById('propietariosActivos').textContent = data.datosAdicionales.proAdminsActivos || 0;
+            document.getElementById('propietariosInactivos').textContent = data.datosAdicionales.proAdminsInactivos || 0;
+            
+            const porcentajePropietarios = data.datosAdicionales.totalProAdmins > 0 ? 
+                ((data.datosAdicionales.proAdminsActivos / data.datosAdicionales.totalProAdmins) * 100).toFixed(2) : 0;
+            document.getElementById('porcentajePropietarios').textContent = porcentajePropietarios + '%';
+            document.getElementById('fechaPropietarios').textContent = formatDate(new Date());
+            
+            // Establecimientos
+            document.getElementById('totalEstablecimientos').textContent = data.datosAdicionales.totalEstablecimientos || 0;
+            document.getElementById('establecimientosActivos').textContent = data.datosAdicionales.establecimientosActivos || 0;
+            document.getElementById('establecimientosInactivos').textContent = data.datosAdicionales.establecimientosInactivos || 0;
+            
+            const porcentajeEstablecimientos = data.datosAdicionales.totalEstablecimientos > 0 ? 
+                ((data.datosAdicionales.establecimientosActivos / data.datosAdicionales.totalEstablecimientos) * 100).toFixed(2) : 0;
+            document.getElementById('porcentajeEstablecimientos').textContent = porcentajeEstablecimientos + '%';
+            document.getElementById('fechaEstablecimientos').textContent = formatDate(new Date());
+            
+            // Barberías
+            document.getElementById('totalBarberias').textContent = data.datosAdicionales.totalBarberias || 0;
+            document.getElementById('barberiasActivas').textContent = data.datosAdicionales.barberiasActivas || 0;
+            document.getElementById('barberiasInactivas').textContent = data.datosAdicionales.barberiasInactivas || 0;
+            
+            const porcentajeBarberias = data.datosAdicionales.totalBarberias > 0 ? 
+                ((data.datosAdicionales.barberiasActivas / data.datosAdicionales.totalBarberias) * 100).toFixed(2) : 0;
+            document.getElementById('porcentajeBarberias').textContent = porcentajeBarberias + '%';
+            document.getElementById('fechaBarberias').textContent = formatDate(new Date());
+            
+            // Salones de Belleza
+            document.getElementById('totalSalones').textContent = data.datosAdicionales.totalSalonesBelleza || 0;
+            document.getElementById('salonesActivos').textContent = data.datosAdicionales.salonesBellezaActivos || 0;
+            document.getElementById('salonesInactivos').textContent = data.datosAdicionales.salonesBellezaInactivos || 0;
+            
+            const porcentajeSalones = data.datosAdicionales.totalSalonesBelleza > 0 ? 
+                ((data.datosAdicionales.salonesBellezaActivos / data.datosAdicionales.totalSalonesBelleza) * 100).toFixed(2) : 0;
+            document.getElementById('porcentajeSalones').textContent = porcentajeSalones + '%';
+            document.getElementById('fechaSalones').textContent = formatDate(new Date());
+        }
+        
+        // Función para cargar gráficos
+        function cargarGraficos() {
+            const fechaInicio = document.getElementById('fechaInicio').value;
+            const fechaFin = document.getElementById('fechaFin').value;
+            
+            // Cargar gráfico de usuarios por rol
+            cargarGraficoUsuariosPorRol();
+            
+            // Cargar gráfico de establecimientos por tipo
+            cargarGraficoEstablecimientosPorTipo();
+            
+            // Cargar gráfico de registros por periodo (default: mensual)
+            actualizarGraficoRegistros('mensual');
+        }
+        
+        // Función para cargar gráfico de usuarios por rol
+        function cargarGraficoUsuariosPorRol() {
+            const ctx = document.getElementById('usuariosPorRolChart').getContext('2d');
+            
+            // Obtener datos
+            fetch('/admin/api/estadisticas/usuarios-por-rol')
+                .then(response => response.json())
+                .then(data => {
+                    new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Clientes', 'Propietarios', 'Administradores'],
+                            datasets: [{
+                                data: [
+                                    data.clientes || 0,
+                                    data.propietarios || 0,
+                                    data.administradores || 0
+                                ],
+                                backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc'],
+                                hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf'],
+                                hoverBorderColor: "rgba(234, 236, 244, 1)",
+                            }],
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            tooltips: {
+                                backgroundColor: "rgb(255,255,255)",
+                                bodyFontColor: "#858796",
+                                borderColor: '#dddfeb',
+                                borderWidth: 1,
+                                xPadding: 15,
+                                yPadding: 15,
+                                displayColors: false,
+                                caretPadding: 10,
+                            },
+                            legend: {
+                                display: false
+                            },
+                            cutoutPercentage: 70,
+                        },
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al cargar gráfico de usuarios por rol:', error);
+                });
+        }
+        
+        // Función para cargar gráfico de establecimientos por tipo
+        function cargarGraficoEstablecimientosPorTipo() {
+            const ctx = document.getElementById('establecimientosPorTipoChart').getContext('2d');
+            
+            // Obtener datos
+            fetch('/admin/api/estadisticas/establecimientos-por-tipo')
+                .then(response => response.json())
+                .then(data => {
+                    new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Barberías', 'Salones de Belleza'],
+                            datasets: [{
+                                data: [
+                                    data.barberias || 0,
+                                    data.salonesBelleza || 0
+                                ],
+                                backgroundColor: ['#4e73df', '#1cc88a'],
+                                hoverBackgroundColor: ['#2e59d9', '#17a673'],
+                                hoverBorderColor: "rgba(234, 236, 244, 1)",
+                            }],
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            tooltips: {
+                                backgroundColor: "rgb(255,255,255)",
+                                bodyFontColor: "#858796",
+                                borderColor: '#dddfeb',
+                                borderWidth: 1,
+                                xPadding: 15,
+                                yPadding: 15,
+                                displayColors: false,
+                                caretPadding: 10,
+                            },
+                            legend: {
+                                display: false
+                            },
+                            cutoutPercentage: 70,
+                        },
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al cargar gráfico de establecimientos por tipo:', error);
+                });
+        }
+        
+        // Función para actualizar gráfico de registros por periodo
+        function actualizarGraficoRegistros(periodo) {
+            const ctx = document.getElementById('registrosPeriodoChart').getContext('2d');
+            const fechaInicio = document.getElementById('fechaInicio').value;
+            const fechaFin = document.getElementById('fechaFin').value;
+            
+            // Obtener datos
+            fetch(`/admin/api/estadisticas/registros-por-periodo?periodo=${periodo}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`)
+                .then(response => response.json())
+                .then(data => {
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: data.labels,
+                            datasets: [
+                                {
+                                    label: "Usuarios",
+                                    lineTension: 0.3,
+                                    backgroundColor: "rgba(78, 115, 223, 0.05)",
+                                    borderColor: "rgba(78, 115, 223, 1)",
+                                    pointRadius: 3,
+                                    pointBackgroundColor: "rgba(78, 115, 223, 1)",
+                                    pointBorderColor: "rgba(78, 115, 223, 1)",
+                                    pointHoverRadius: 3,
+                                    pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+                                    pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+                                    pointHitRadius: 10,
+                                    pointBorderWidth: 2,
+                                    data: data.usuarios,
+                                },
+                                {
+                                    label: "Establecimientos",
+                                    lineTension: 0.3,
+                                    backgroundColor: "rgba(28, 200, 138, 0.05)",
+                                    borderColor: "rgba(28, 200, 138, 1)",
+                                    pointRadius: 3,
+                                    pointBackgroundColor: "rgba(28, 200, 138, 1)",
+                                    pointBorderColor: "rgba(28, 200, 138, 1)",
+                                    pointHoverRadius: 3,
+                                    pointHoverBackgroundColor: "rgba(28, 200, 138, 1)",
+                                    pointHoverBorderColor: "rgba(28, 200, 138, 1)",
+                                    pointHitRadius: 10,
+                                    pointBorderWidth: 2,
+                                    data: data.establecimientos,
+                                }
+                            ],
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            layout: {
+                                padding: {
+                                    left: 10,
+                                    right: 25,
+                                    top: 25,
+                                    bottom: 0
+                                }
+                            },
+                            scales: {
+                                xAxes: [{
+                                    time: {
+                                        unit: periodo === 'diario' ? 'day' : periodo === 'semanal' ? 'week' : 'month'
+                                    },
+                                    gridLines: {
+                                        display: false,
+                                        drawBorder: false
+                                    },
+                                    ticks: {
+                                        maxTicksLimit: 7
+                                    }
+                                }],
+                                yAxes: [{
+                                    ticks: {
+                                        maxTicksLimit: 5,
+                                        padding: 10,
+                                    },
+                                    gridLines: {
+                                        color: "rgb(234, 236, 244)",
+                                        zeroLineColor: "rgb(234, 236, 244)",
+                                        drawBorder: false,
+                                        borderDash: [2],
+                                        zeroLineBorderDash: [2]
+                                    }
+                                }],
+                            },
+                            legend: {
+                                display: true
+                            },
+                            tooltips: {
+                                backgroundColor: "rgb(255,255,255)",
+                                bodyFontColor: "#858796",
+                                titleMarginBottom: 10,
+                                titleFontColor: '#6e707e',
+                                titleFontSize: 14,
+                                borderColor: '#dddfeb',
+                                borderWidth: 1,
+                                xPadding: 15,
+                                yPadding: 15,
+                                displayColors: false,
+                                intersect: false,
+                                mode: 'index',
+                                caretPadding: 10,
+                            }
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al cargar gráfico de registros por periodo:', error);
+                });
+        }
+        
+        // Función para exportar reportes
+        function exportarReporte(formato) {
+            const fechaInicio = document.getElementById('fechaInicio').value;
+            const fechaFin = document.getElementById('fechaFin').value;
+            
+            window.location.href = `/admin/reportes/exportar?formato=${formato}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+        }
+        
+        // Función para formatear fechas
+        function formatDate(date) {
+            return date.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // Función para mostrar alertas
+        function mostrarAlerta(mensaje, tipo) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${mensaje}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Insertar la alerta al principio del contenedor
+            const container = document.querySelector('.container-fluid');
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            // Eliminar automáticamente después de 5 segundos
+            setTimeout(() => {
+                const bsAlert = new bootstrap.Alert(alertDiv);
+                bsAlert.close();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

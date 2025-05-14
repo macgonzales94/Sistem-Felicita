@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FELICITA - Dashboard Administrador</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+            <div class="sidebar-brand-icon">
+                <i class="fas fa-cut"></i>
+            </div>
+            <div class="sidebar-brand-text mx-3">FELICITA Admin</div>
+        </a>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-heading">
+            Principal
+        </div>
+
+        <ul class="nav-item">
+            <li>
+                <a class="nav-link" th:href="@{/admin/dashboard}">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+        </ul>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-heading">
+            Gestión
+        </div>
+
+        <ul class="nav-item">
+            <li>
+                <a class="nav-link" th:href="@{/admin/usuarios}">
+                    <i class="fas fa-fw fa-users"></i>
+                    <span>Usuarios</span>
+                </a>
+            </li>
+            <li>
+                <a class="nav-link" th:href="@{/admin/establecimientos}">
+                    <i class="fas fa-fw fa-store"></i>
+                    <span>Establecimientos</span>
+                </a>
+            </li>
+        </ul>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-heading">
+            Métricas
+        </div>
+
+        <ul class="nav-item">
+            <li>
+                <a class="nav-link" th:href="@{/admin/reportes}">
+                    <i class="fas fa-fw fa-chart-area"></i>
+                    <span>Reportes</span>
+                </a>
+            </li>
+        </ul>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-heading">
+            Sistema
+        </div>
+
+        <ul class="nav-item">
+            <li>
+                <a class="nav-link" th:href="@{/admin/configuracion}">
+                    <i class="fas fa-fw fa-cog"></i>
+                    <span>Configuración</span>
+                </a>
+            </li>
+        </ul>
+        
+        <hr class="sidebar-divider">
+        
+        <!-- Botón para cerrar sesión -->
+        <div class="text-center mt-3 mb-3">
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn btn-danger btn-sm">
+                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="content">
+        <!-- Barra superior -->
+        <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+            <!-- Botón Sidebar Toggle (Topbar) -->
+            <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3 sidebar-toggle">
+                <i class="fa fa-bars"></i>
+            </button>
+
+            <!-- Barra de búsqueda -->
+            <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+                <div class="input-group">
+                    <input type="text" class="form-control bg-light border-0 small" placeholder="Buscar..."
+                        aria-label="Search" aria-describedby="basic-addon2">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="button">
+                            <i class="fas fa-search fa-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Topbar Navbar -->
+            <ul class="navbar-nav ml-auto">
+                <!-- Información de usuario -->
+                <li class="nav-item dropdown no-arrow">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="mr-2 d-none d-lg-inline text-gray-600 small" sec:authentication="name">Usuario</span>
+                        <img class="img-profile rounded-circle" src="https://via.placeholder.com/60">
+                    </a>
+                    <!-- Dropdown - Información de usuario -->
+                    <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                        aria-labelledby="userDropdown">
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Perfil
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="dropdown-item">
+                                <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                Cerrar sesión
+                            </button>
+                        </form>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Inicio del contenido de la página -->
+        <div class="container-fluid">
+            <!-- Titulo de página -->
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+                <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                    <i class="fas fa-download fa-sm text-white-50"></i> Generar Reporte
+                </a>
+            </div>
+
+            <!-- Fila de tarjetas de estadísticas -->
+            <div class="row">
+                <!-- Tarjeta de Usuarios -->
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card card-stats border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="card-stats-title text-uppercase mb-1">
+                                        Total Usuarios</div>
+                                    <div class="card-stats-number mb-0 font-weight-bold" id="totalUsuarios">
+                                        <span th:text="${estadisticas.datosAdicionales['totalUsuarios']} ?: '0'">0</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="card-icon bg-primary-gradient text-white">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta de Clientes -->
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card card-stats border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="card-stats-title text-uppercase mb-1">
+                                        Clientes</div>
+                                    <div class="card-stats-number mb-0 font-weight-bold" id="totalClientes">
+                                        <span th:text="${estadisticas.datosAdicionales['totalClientes']} ?: '0'">0</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="card-icon bg-success-gradient text-white">
+                                        <i class="fas fa-user-friends"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta de ProAdmin -->
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card card-stats border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="card-stats-title text-uppercase mb-1">
+                                        Propietarios</div>
+                                    <div class="card-stats-number mb-0 font-weight-bold" id="totalProAdmins">
+                                        <span th:text="${estadisticas.datosAdicionales['totalProAdmins']} ?: '0'">0</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="card-icon bg-info-gradient text-white">
+                                        <i class="fas fa-user-tie"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta de Establecimientos -->
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card card-stats border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="card-stats-title text-uppercase mb-1">
+                                        Establecimientos</div>
+                                    <div class="card-stats-number mb-0 font-weight-bold" id="totalEstablecimientos">
+                                        <span th:text="${estadisticas.datosAdicionales['totalEstablecimientos']} ?: '0'">0</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="card-icon bg-warning-gradient text-white">
+                                        <i class="fas fa-store"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fila de Gráficos -->
+            <div class="row">
+                <!-- Gráfico de Usuarios por Rol -->
+                <div class="col-xl-6 col-lg-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">Usuarios por Rol</h6>
+                            <div class="dropdown no-arrow">
+                                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                                    aria-labelledby="dropdownMenuLink">
+                                    <div class="dropdown-header">Opciones:</div>
+                                    <a class="dropdown-item" href="#">Ver Detalles</a>
+                                    <a class="dropdown-item" href="#">Exportar Datos</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-pie pt-4 pb-2">
+                                <canvas id="usuariosPorRolChart"></canvas>
+                            </div>
+                            <div class="mt-4 text-center small">
+                                <span class="mr-2">
+                                    <i class="fas fa-circle text-primary"></i> Clientes
+                                </span>
+                                <span class="mr-2">
+                                    <i class="fas fa-circle text-success"></i> Propietarios
+                                </span>
+                                <span class="mr-2">
+                                    <i class="fas fa-circle text-info"></i> Administradores
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráfico de Establecimientos por Tipo -->
+                <div class="col-xl-6 col-lg-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">Establecimientos por Tipo</h6>
+                            <div class="dropdown no-arrow">
+                                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                                    aria-labelledby="dropdownMenuLink">
+                                    <div class="dropdown-header">Opciones:</div>
+                                    <a class="dropdown-item" href="#">Ver Detalles</a>
+                                    <a class="dropdown-item" href="#">Exportar Datos</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-area">
+                                <canvas id="establecimientosPorTipoChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Últimos usuarios registrados -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">Últimos Usuarios Registrados</h6>
+                            <a href="/admin/usuarios" class="btn btn-sm btn-primary">
+                                Ver Todos
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-usuarios" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>Nombre</th>
+                                            <th>Email</th>
+                                            <th>Rol</th>
+                                            <th>Estado</th>
+                                            <th>Fecha Registro</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Mostrar últimos 5 usuarios -->
+                                        <tr th:each="usuario : ${usuarios}">
+                                            <td th:text="${usuario.nombre + ' ' + usuario.apellido}">John Doe</td>
+                                            <td th:text="${usuario.email}">john@example.com</td>
+                                            <td th:text="${usuario.roles}">CLIENTE</td>
+                                            <td>
+                                                <span th:if="${usuario.estaActivo}" class="badge bg-success">Activo</span>
+                                                <span th:unless="${usuario.estaActivo}" class="badge bg-danger">Inactivo</span>
+                                            </td>
+                                            <td th:text="${#temporals.format(usuario.fechaRegistro, 'dd/MM/yyyy')}">01/01/2025</td>
+                                        </tr>
+                                        <!-- Si no hay usuarios, mostrar mensaje -->
+                                        <tr th:if="${#lists.isEmpty(usuarios)}">
+                                            <td colspan="5" class="text-center">No hay usuarios registrados.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Fin del contenido de la página -->
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script th:src="@{/js/admin.js}"></script>
+</body>
+</html>

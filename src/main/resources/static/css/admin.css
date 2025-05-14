@@ -1,0 +1,309 @@
+/* Estilos para el módulo de administración */
+
+/* Variables */
+:root {
+    --primary-color: #4e73df;
+    --secondary-color: #858796;
+    --success-color: #1cc88a;
+    --info-color: #36b9cc;
+    --warning-color: #f6c23e;
+    --danger-color: #e74a3b;
+    --light-color: #f8f9fa;
+    --dark-color: #5a5c69;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Estilos para el sidebar */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100vh;
+    background-color: var(--primary-color);
+    background-image: linear-gradient(180deg, var(--primary-color) 10%, #224abe 100%);
+    color: #fff;
+    z-index: 999;
+    transition: all 0.3s;
+}
+
+.sidebar-brand {
+    height: 4.375rem;
+    text-decoration: none;
+    font-size: 1.2rem;
+    font-weight: 800;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    letter-spacing: 0.05rem;
+    z-index: 1;
+}
+
+.sidebar-brand-icon i {
+    font-size: 2rem;
+}
+
+.sidebar-brand-text {
+    display: inline-block;
+    margin-left: 0.5rem;
+}
+
+.sidebar-divider {
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    margin: 0 1rem 1rem;
+}
+
+.sidebar-heading {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.13rem;
+    text-transform: uppercase;
+    padding: 0 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.nav-item {
+    position: relative;
+}
+
+.nav-link {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.nav-link i {
+    margin-right: 0.5rem;
+    opacity: 0.75;
+    width: 1.2rem;
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+.nav-link:hover {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link.active {
+    color: #fff;
+    font-weight: 700;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Estilos para contenido principal */
+.content {
+    margin-left: 250px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+}
+
+/* Estilos para tarjetas de estadísticas */
+.card-stats {
+    border-radius: 0.35rem;
+    box-shadow: 0 .15rem 1.75rem 0 rgba(58,59,69,.15);
+    transition: all 0.3s;
+}
+
+.card-stats:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 .5rem 2rem 0 rgba(58,59,69,.2);
+}
+
+.card-stats .card-body {
+    padding: 1.25rem;
+}
+
+.card-stats .card-icon {
+    width: 4rem;
+    height: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 100%;
+    font-size: 2rem;
+}
+
+.card-stats .card-stats-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--dark-color);
+}
+
+.card-stats .card-stats-title {
+    font-size: 0.8rem;
+    color: var(--secondary-color);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+}
+
+/* Estilos para colores de tarjetas */
+.bg-primary-gradient {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #667eea 100%);
+}
+
+.bg-success-gradient {
+    background: linear-gradient(135deg, var(--success-color) 0%, #84e493 100%);
+}
+
+.bg-warning-gradient {
+    background: linear-gradient(135deg, var(--warning-color) 0%, #ffd350 100%);
+}
+
+.bg-danger-gradient {
+    background: linear-gradient(135deg, var(--danger-color) 0%, #fc544b 100%);
+}
+
+.bg-info-gradient {
+    background: linear-gradient(135deg, var(--info-color) 0%, #5ad8e6 100%);
+}
+
+/* Estilos para tablas */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.table-usuarios {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-usuarios th {
+    background-color: var(--light-color);
+    border-bottom: 2px solid #dee2e6;
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.table-usuarios td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.table-usuarios tr:hover {
+    background-color: rgba(0, 0, 0, 0.025);
+}
+
+.table-usuarios .estado-activo {
+    color: var(--success-color);
+}
+
+.table-usuarios .estado-inactivo {
+    color: var(--danger-color);
+}
+
+/* Estilos para paginación */
+.pagination {
+    margin-top: 1rem;
+    justify-content: center;
+}
+
+.page-item.active .page-link {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.page-link {
+    color: var(--primary-color);
+}
+
+/* Estilos para formularios */
+.form-admin .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-admin label {
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 0.5rem;
+}
+
+.form-admin .form-control {
+    border-radius: 0.35rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d3e2;
+}
+
+.form-admin .form-control:focus {
+    border-color: #bac8f3;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+/* Estilos para reportes */
+.report-card {
+    margin-bottom: 1.5rem;
+    border-radius: 0.35rem;
+    box-shadow: 0 .15rem 1.75rem 0 rgba(58,59,69,.15);
+}
+
+.report-card .card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+    padding: 0.75rem 1.25rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.report-card .card-body {
+    padding: 1.25rem;
+}
+
+/* Estilos para gráficos */
+.chart-container {
+    position: relative;
+    margin: auto;
+    height: 300px;
+    width: 100%;
+}
+
+/* Estilos para configuración */
+.config-section {
+    margin-bottom: 2rem;
+}
+
+.config-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--dark-color);
+    border-bottom: 1px solid #e3e6f0;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+    
+    .content {
+        margin-left: 0;
+    }
+    
+    .sidebar-toggle {
+        display: block;
+    }
+    
+    .sidebar-collapsed .sidebar {
+        display: none;
+    }
+    
+    .sidebar-collapsed .content {
+        margin-left: 0;
+    }
+}

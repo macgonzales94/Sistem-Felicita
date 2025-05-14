@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FELICITA - Gestión de Usuarios</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+            <div class="sidebar-brand-icon">
+                <i class="fas fa-cut"></i>
+            </div>
+            <div class="sidebar-brand-text mx-3">FELICITA Admin</div>
+        </a>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-heading">
+            Principal
+        </div>
+
+        <ul class="nav-item">
+            <li>
+                <a class="nav-link" th:href="@{/admin/dashboard}">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+        </ul>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-heading">
+            Gestión
+        </div>
+
+        <ul class="nav-item">
+            <li>
+                <a class="nav-link" th:href="@{/admin/usuarios}">
+                    <i class="fas fa-fw fa-users"></i>
+                    <span>Usuarios</span>
+                </a>
+            </li>
+            <li>
+                <a class="nav-link" th:href="@{/admin/establecimientos}">
+                    <i class="fas fa-fw fa-store"></i>
+                    <span>Establecimientos</span>
+                </a>
+            </li>
+        </ul>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-heading">
+            Métricas
+        </div>
+
+        <ul class="nav-item">
+            <li>
+                <a class="nav-link" th:href="@{/admin/reportes}">
+                    <i class="fas fa-fw fa-chart-area"></i>
+                    <span>Reportes</span>
+                </a>
+            </li>
+        </ul>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-heading">
+            Sistema
+        </div>
+
+        <ul class="nav-item">
+            <li>
+                <a class="nav-link" th:href="@{/admin/configuracion}">
+                    <i class="fas fa-fw fa-cog"></i>
+                    <span>Configuración</span>
+                </a>
+            </li>
+        </ul>
+        
+        <hr class="sidebar-divider">
+        
+        <!-- Botón para cerrar sesión -->
+        <div class="text-center mt-3 mb-3">
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn btn-danger btn-sm">
+                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="content">
+        <!-- Barra superior -->
+        <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+            <!-- Botón Sidebar Toggle (Topbar) -->
+            <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3 sidebar-toggle">
+                <i class="fa fa-bars"></i>
+            </button>
+
+            <!-- Barra de búsqueda -->
+            <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+                <div class="input-group">
+                    <input type="text" id="filtroBusqueda" class="form-control bg-light border-0 small" placeholder="Buscar usuario..."
+                        aria-label="Search" aria-describedby="basic-addon2">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="button">
+                            <i class="fas fa-search fa-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Topbar Navbar -->
+            <ul class="navbar-nav ml-auto">
+                <!-- Información de usuario -->
+                <li class="nav-item dropdown no-arrow">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="mr-2 d-none d-lg-inline text-gray-600 small" sec:authentication="name">Usuario</span>
+                        <img class="img-profile rounded-circle" src="https://via.placeholder.com/60">
+                    </a>
+                    <!-- Dropdown - Información de usuario -->
+                    <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                        aria-labelledby="userDropdown">
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Perfil
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="dropdown-item">
+                                <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                Cerrar sesión
+                            </button>
+                        </form>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Inicio del contenido de la página -->
+        <div class="container-fluid">
+            <!-- Alertas -->
+            <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${mensaje}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Titulo de página y botón para crear usuario -->
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Gestión de Usuarios</h1>
+                <a th:href="@{/admin/usuarios/nuevo}" class="d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                    <i class="fas fa-user-plus fa-sm text-white-50"></i> Crear Usuario
+                </a>
+            </div>
+
+            <!-- Filtros -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Filtros</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="filtroEstado" class="form-label">Estado</label>
+                            <select id="filtroEstado" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="true">Activos</option>
+                                <option value="false">Inactivos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="filtroRol" class="form-label">Rol</label>
+                            <select id="filtroRol" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="ADMINISTRADOR">Administradores</option>
+                                <option value="PROADMIN">Propietarios</option>
+                                <option value="CLIENTE">Clientes</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3 d-flex align-items-end">
+                            <button type="button" class="btn btn-secondary w-100" id="limpiarFiltros">
+                                <i class="fas fa-sync-alt me-2"></i> Limpiar Filtros
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Usuarios -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Listado de Usuarios</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                            aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Acciones:</div>
+                            <a class="dropdown-item" href="#">Exportar a Excel</a>
+                            <a class="dropdown-item" href="#">Exportar a PDF</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-usuarios" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Teléfono</th>
+                                    <th>Roles</th>
+                                    <th>Estado</th>
+                                    <th>Fecha Registro</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="usuario : ${usuarios}" th:data-id="${usuario.id}">
+                                    <td th:text="${usuario.id}">1</td>
+                                    <td th:text="${usuario.nombre + ' ' + usuario.apellido}">John Doe</td>
+                                    <td th:text="${usuario.email}">john@example.com</td>
+                                    <td th:text="${usuario.telefono ?: '-'}">123456789</td>
+                                    <td th:text="${#strings.setJoin(usuario.roles, ', ')}" th:data-roles="${#strings.setJoin(usuario.roles, ',')}">CLIENTE</td>
+                                    <td th:data-estado="${usuario.estaActivo}">
+                                        <span th:if="${usuario.estaActivo}" class="badge bg-success estado-activo">Activo</span>
+                                        <span th:unless="${usuario.estaActivo}" class="badge bg-danger estado-inactivo">Inactivo</span>
+                                    </td>
+                                    <td th:text="${#temporals.format(usuario.fechaRegistro, 'dd/MM/yyyy')}">01/01/2025</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a th:href="@{/admin/usuarios/{id}/editar(id=${usuario.id})}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button th:if="${usuario.estaActivo}" class="btn btn-sm btn-danger btn-desactivar"
+                                                    th:data-id="${usuario.id}" title="Desactivar">
+                                                <i class="fas fa-user-slash"></i>
+                                            </button>
+                                            <button th:unless="${usuario.estaActivo}" class="btn btn-sm btn-success btn-activar"
+                                                    th:data-id="${usuario.id}" title="Activar">
+                                                <i class="fas fa-user-check"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Si no hay usuarios -->
+                                <tr th:if="${#lists.isEmpty(usuarios)}">
+                                    <td colspan="8" class="text-center">No hay usuarios registrados.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Fin del contenido de la página -->
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/admin.js}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Limpiar filtros
+            document.getElementById('limpiarFiltros').addEventListener('click', function() {
+                document.getElementById('filtroEstado').value = '';
+                document.getElementById('filtroRol').value = '';
+                document.getElementById('filtroBusqueda').value = '';
+                
+                // Aplicar filtros (mostrará todos)
+                const event = new Event('change');
+                document.getElementById('filtroEstado').dispatchEvent(event);
+            });
+        });
+    </script>
+</body>
+</html>
