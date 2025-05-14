@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FELICITA - Perfil Establecimiento</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/proadmin.css}">
+</head>
+<body>
+    <!-- Incluir el menú lateral -->
+    <div th:replace="fragmentos/menu :: menu"></div>
+    
+    <main class="content">
+        <!-- Cabecera -->
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Perfil del Establecimiento</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <div class="btn-group me-2">
+                    <a th:href="@{/proadmin/establecimientos/{id}/editar(id=${establecimiento.id})}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit me-1"></i> Editar Perfil
+                    </a>
+                    <a th:href="@{/proadmin/servicios(establecimientoId=${establecimiento.id})}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-list me-1"></i> Gestionar Servicios
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Alertas -->
+        <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${mensaje}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div class="row">
+            <!-- Información principal -->
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    <div class="establecimiento-imagen-container">
+                        <img th:src="${establecimiento.imagenUrl != null ? establecimiento.imagenUrl : '/img/establecimiento-default.jpg'}" 
+                             class="card-img-top" alt="Imagen del establecimiento">
+                        <div class="establecimiento-imagen-overlay">
+                            <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#cambiarImagenModal">
+                                <i class="fas fa-camera me-1"></i> Cambiar Imagen
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title mb-0" th:text="${establecimiento.nombre}">Nombre del Establecimiento</h5>
+                            <span th:class="${establecimiento.estaActivo ? 'badge bg-success' : 'badge bg-danger'}" 
+                                  th:text="${establecimiento.estaActivo ? 'Activo' : 'Inactivo'}">Estado</span>
+                        </div>
+                        <p class="card-text" th:text="${establecimiento.descripcion}">Descripción del establecimiento</p>
+                        
+                        <hr>
+                        
+                        <h6 class="fw-bold">Tipo de Establecimiento</h6>
+                        <p th:text="${#strings.replace(establecimiento.tipoEstablecimiento, '_', ' ')}">Tipo</p>
+                        
+                        <h6 class="fw-bold">Información de Contacto</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                <span th:text="${establecimiento.direccion + ', ' + establecimiento.ciudad}">Dirección, Ciudad</span>
+                                <span th:if="${establecimiento.codigoPostal}" th:text="${' - ' + establecimiento.codigoPostal}">CP</span>
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-phone text-primary me-2"></i>
+                                <span th:text="${establecimiento.telefono}">Teléfono</span>
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-envelope text-primary me-2"></i>
+                                <span th:text="${establecimiento.email}">Email</span>
+                            </li>
+                            <li th:if="${establecimiento.sitioWeb}">
+                                <i class="fas fa-globe text-primary me-2"></i>
+                                <a th:href="${establecimiento.sitioWeb}" target="_blank" th:text="${establecimiento.sitioWeb}">Sitio Web</a>
+                            </li>
+                        </ul>
+                        
+                        <h6 class="fw-bold">Horarios de Atención</h6>
+                        <p th:text="${establecimiento.horariosAtencion}">Horarios de atención</p>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar-alt me-1"></i> 
+                            Creado: <span th:text="${#temporals.format(establecimiento.fechaRegistro, 'dd/MM/yyyy')}">01/01/2025</span>
+                            | Última actualización: <span th:text="${#temporals.format(establecimiento.fechaActualizacion, 'dd/MM/yyyy')}">01/01/2025</span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Características específicas -->
+            <div class="col-md-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Características Específicas</h5>
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#agregarCaracteristicaModal">
+                                <i class="fas fa-plus-circle me-1"></i> Agregar Característica
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Características de Barbería -->
+                        <div th:if="${establecimiento.tipoEstablecimiento == 'BARBERIA'}" class="mb-4">
+                            <h6 class="fw-bold mb-3">Detalles de Barbería</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <p class="mb-2">
+                                        <strong>Especialidad:</strong> 
+                                        <span th:text="${establecimiento.especialidadCortes}">Especialidad</span>
+                                    </p>
+                                    <p class="mb-2">
+                                        <strong>Servicios de Barba:</strong> 
+                                        <span th:text="${establecimiento.tieneServiciosBarba ? 'Sí' : 'No'}">Sí/No</span>
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-2">
+                                        <strong>Servicios Faciales:</strong> 
+                                        <span th:text="${establecimiento.tieneServiciosFaciales ? 'Sí' : 'No'}">Sí/No</span>
+                                    </p>
+                                    <p class="mb-2">
+                                        <strong>Estilo de Barbería:</strong> 
+                                        <span th:text="${establecimiento.estiloBarberia}">Estilo</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Características de Salón de Belleza -->
+                        <div th:if="${establecimiento.tipoEstablecimiento == 'SALON_BELLEZA'}" class="mb-4">
+                            <h6 class="fw-bold mb-3">Detalles de Salón de Belleza</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <p class="mb-2">
+                                        <strong>Especialidad:</strong> 
+                                        <span th:text="${establecimiento.especialidad}">Especialidad</span>
+                                    </p>
+                                    <p class="mb-2">
+                                        <strong>Servicios de Maquillaje:</strong> 
+                                        <span th:text="${establecimiento.tieneServiciosMaquillaje ? 'Sí' : 'No'}">Sí/No</span>
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-2">
+                                        <strong>Servicios de Uñas:</strong> 
+                                        <span th:text="${establecimiento.tieneServiciosUnas ? 'Sí' : 'No'}">Sí/No</span>
+                                    </p>
+                                    <p class="mb-2">
+                                        <strong>Tratamientos Capilares:</strong> 
+                                        <span th:text="${establecimiento.tieneTratamientosCapilares ? 'Sí' : 'No'}">Sí/No</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Caracteristicas generales -->
+                        <h6 class="fw-bold mb-3">Características Adicionales</h6>
+                        <div class="caracteristicas-container" id="caracteristicas-container">
+                            <!-- Se llenará dinámicamente con JavaScript -->
+                            <p th:if="${#lists.isEmpty(establecimiento.caracteristicas)}" class="text-muted text-center py-3">
+                                No hay características adicionales definidas
+                            </p>
+                            
+                            <div th:unless="${#lists.isEmpty(establecimiento.caracteristicas)}" class="d-flex flex-wrap gap-2">
+                                <div th:each="caracteristica : ${establecimiento.caracteristicas}" class="caracteristica-badge">
+                                    <span th:text="${caracteristica}">Característica</span>
+                                    <button type="button" class="btn-close ms-2" 
+                                            th:onclick="'eliminarCaracteristica(\'' + ${establecimiento.id} + '\', \'' + ${caracteristica} + '\')'"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Servicios destacados -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Servicios Destacados</h5>
+                            <a th:href="@{/proadmin/servicios/nuevo(establecimientoId=${establecimiento.id})}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-plus-circle me-1"></i> Nuevo Servicio
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="servicios-container">
+                            <!-- Se llenará dinámicamente con JavaScript -->
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white text-center">
+                        <a th:href="@{/proadmin/servicios(establecimientoId=${establecimiento.id})}" class="btn btn-outline-primary">
+                            <i class="fas fa-list me-1"></i> Ver todos los servicios
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Modal para cambiar imagen -->
+    <div class="modal fade" id="cambiarImagenModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cambiar Imagen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form th:action="@{/proadmin/establecimientos/{id}/imagen(id=${establecimiento.id})}" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="imagen" class="form-label">Selecciona una imagen</label>
+                            <input type="file" class="form-control" id="imagen" name="imagen" accept="image/*" required>
+                            <div class="form-text">La imagen debe ser de formato JPG, PNG o WEBP y no exceder 5MB.</div>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Subir Imagen</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para agregar característica -->
+    <div class="modal fade" id="agregarCaracteristicaModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Agregar Característica</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="agregarCaracteristicaForm">
+                        <div class="mb-3">
+                            <label for="caracteristica" class="form-label">Característica</label>
+                            <input type="text" class="form-control" id="caracteristica" name="caracteristica" required>
+                            <div class="form-text">Ejemplos: Wifi Gratis, Aire Acondicionado, Estacionamiento, etc.</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnAgregarCaracteristica">Agregar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/proadmin.js}"></script>
+    <script th:inline="javascript">
+        const establecimientoId = /*[[${establecimiento.id}]]*/ null;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cargar servicios destacados
+            cargarServiciosDestacados();
+            
+            // Configurar modal para agregar característica
+            document.getElementById('btnAgregarCaracteristica').addEventListener('click', function() {
+                agregarCaracteristica();
+            });
+        });
+        
+        function cargarServiciosDestacados() {
+            const container = document.getElementById('servicios-container');
+            
+            fetch(`/proadmin/servicios/api/establecimiento/${establecimientoId}`)
+                .then(response => response.json())
+                .then(servicios => {
+                    container.innerHTML = '';
+                    
+                    if (servicios.length === 0) {
+                        container.innerHTML = `
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No hay servicios registrados para este establecimiento.
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    // Mostrar servicios en cards (máximo 4)
+                    const serviciosDestacados = servicios.filter(s => s.estaDisponible).slice(0, 4);
+                    
+                    if (serviciosDestacados.length === 0) {
+                        container.innerHTML = `
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No hay servicios disponibles para este establecimiento.
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    // Crear fila para servicios
+                    const row = document.createElement('div');
+                    row.className = 'row';
+                    
+                    serviciosDestacados.forEach(servicio => {
+                        const col = document.createElement('div');
+                        col.className = 'col-md-6 col-lg-3 mb-3';
+                        
+                        const imagenUrl = servicio.imagenUrl || '/img/servicio-default.jpg';
+                        
+                        col.innerHTML = `
+                            <div class="card h-100">
+                                <img src="${imagenUrl}" class="card-img-top" alt="${servicio.nombre}" style="height: 140px; object-fit: cover;">
+                                <div class="card-body">
+                                    <h6 class="card-title">${servicio.nombre}</h6>
+                                    <p class="card-text small">${servicio.descripcion || ''}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold">$${servicio.precio}</span>
+                                        <span class="badge bg-info">${servicio.duracionMinutos} min</span>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-white text-center">
+                                    <a href="/proadmin/servicios/${servicio.id}/editar" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit me-1"></i> Editar
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                        
+                        row.appendChild(col);
+                    });
+                    
+                    container.appendChild(row);
+                })
+                .catch(error => {
+                    console.error('Error al cargar servicios:', error);
+                    container.innerHTML = `
+                        <div class="alert alert-danger text-center">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            Error al cargar los servicios. Por favor, intenta nuevamente.
+                        </div>
+                    `;
+                });
+        }
+        
+        function agregarCaracteristica() {
+            const caracteristica = document.getElementById('caracteristica').value.trim();
+            
+            if (!caracteristica) {
+                alert('Por favor, ingresa una característica válida');
+                return;
+            }
+            
+            fetch(`/proadmin/establecimientos/api/${establecimientoId}/caracteristicas`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ caracteristica: caracteristica })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al agregar característica');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Cerrar modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('agregarCaracteristicaModal'));
+                modal.hide();
+                
+                // Recargar la página para ver cambios
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al agregar la característica');
+            });
+        }
+        
+        function eliminarCaracteristica(id, caracteristica) {
+            if (confirm('¿Estás seguro de eliminar esta característica?')) {
+                fetch(`/proadmin/establecimientos/api/${id}/caracteristicas/${encodeURIComponent(caracteristica)}`, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al eliminar característica');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Recargar la página para ver cambios
+                    window.location.reload();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al eliminar la característica');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

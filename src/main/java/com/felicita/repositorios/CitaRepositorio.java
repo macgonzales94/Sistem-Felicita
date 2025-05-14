@@ -17,21 +17,35 @@ import java.util.Optional;
 @Repository
 public interface CitaRepositorio extends JpaRepository<Cita, Long> {
     List<Cita> findByCliente(Cliente cliente);
-    
+
     List<Cita> findByEstablecimiento(Establecimiento establecimiento);
-    
+
     Page<Cita> findByClienteOrderByFechaHoraDesc(Cliente cliente, Pageable pageable);
-    
+
     List<Cita> findByClienteAndEstadoOrderByFechaHoraDesc(Cliente cliente, Cita.EstadoCita estado);
-    
+
     @Query("SELECT c FROM Cita c WHERE c.establecimiento.id = :establecimientoId AND c.fechaHora BETWEEN :fechaInicio AND :fechaFin")
     List<Cita> findByEstablecimientoAndRangoFecha(
             @Param("establecimientoId") Long establecimientoId,
             @Param("fechaInicio") LocalDateTime fechaInicio,
             @Param("fechaFin") LocalDateTime fechaFin);
-    
+
     Optional<Cita> findByCodigoUnico(String codigoUnico);
-    
+
     @Query("SELECT COUNT(c) FROM Cita c WHERE c.cliente.id = :clienteId AND c.fechaHora > :ahora")
     long countCitasFuturasByCliente(@Param("clienteId") Long clienteId, @Param("ahora") LocalDateTime ahora);
+
+    @Query("SELECT COUNT(c) FROM Cita c WHERE c.establecimiento.id IN :idsEstablecimientos")
+    long countByEstablecimientoIdIn(@Param("idsEstablecimientos") List<Long> idsEstablecimientos);
+
+    @Query("SELECT COUNT(c) FROM Cita c WHERE c.establecimiento.id IN :idsEstablecimientos AND c.estado = :estado")
+    long countByEstablecimientoIdInAndEstado(
+            @Param("idsEstablecimientos") List<Long> idsEstablecimientos,
+            @Param("estado") Cita.EstadoCita estado);
+
+    @Query("SELECT COUNT(c) FROM Cita c WHERE c.establecimiento.id IN :idsEstablecimientos AND c.fechaHora BETWEEN :inicio AND :fin")
+    long countByEstablecimientoIdInAndFechaHoraBetween(
+            @Param("idsEstablecimientos") List<Long> idsEstablecimientos,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin);
 }
