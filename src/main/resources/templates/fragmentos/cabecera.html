@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${titulo} + ' - FELICITA'">FELICITA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <!-- CSS específico para módulos -->
+    <th:block th:if="${#request.requestURI.startsWith('/admin')}">
+        <link rel="stylesheet" th:href="@{/css/admin.css}">
+    </th:block>
+    <th:block th:if="${#request.requestURI.startsWith('/cliente')}">
+        <link rel="stylesheet" th:href="@{/css/cliente.css}">
+    </th:block>
+    <th:block th:if="${#request.requestURI.startsWith('/proadmin')}">
+        <link rel="stylesheet" th:href="@{/css/proadmin.css}">
+    </th:block>
+    <!-- Favicon -->
+    <link rel="shortcut icon" th:href="@{/favicon.ico}" type="image/x-icon">
+</head>
+<body>
+</body>
+</html>

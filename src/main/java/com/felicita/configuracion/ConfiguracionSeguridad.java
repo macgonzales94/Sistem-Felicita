@@ -56,6 +56,8 @@ public class ConfiguracionSeguridad {
                 .anyRequest().authenticated()
             );
             
+            
+            
         // Agregar filtro JWT
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         
@@ -72,3 +74,4 @@ public class ConfiguracionSeguridad {
         return authConfig.getAuthenticationManager();
     }
 }
+

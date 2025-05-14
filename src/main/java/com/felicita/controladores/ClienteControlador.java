@@ -55,11 +55,12 @@ public class ClienteControlador {
     public String detalleEstablecimiento(@PathVariable Long id, Model model) {
         return "cliente/detalle-establecimiento";
     }
-    
+    /*
     @GetMapping("/giftcards")
     public String giftcards(Model model) {
         return "cliente/giftcards";
     }
+    */
     
     // API REST endpoints para acceso desde JavaScript
     
