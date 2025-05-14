@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FELICITA - Mis Citas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/cliente.css}">
+</head>
+<body class="bg-light">
+    <!-- Incluir la barra de navegación -->
+    <div th:replace="fragmentos/cabecera :: cabecera"></div>
+    
+    <div class="container py-5">
+        <!-- Título y botón de reserva -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">Mis Citas</h1>
+            <a th:href="@{/cliente/citas/reservar}" class="btn btn-primary">
+                <i class="fas fa-calendar-plus me-2"></i> Nueva Cita
+            </a>
+        </div>
+        
+        <!-- Alertas -->
+        <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${mensaje}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- Filtros y búsqueda -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="filtroEstado" class="form-label">Estado</label>
+                        <select id="filtroEstado" class="form-select">
+                            <option value="todos">Todos</option>
+                            <option value="PENDIENTE">Pendientes</option>
+                            <option value="CONFIRMADA">Confirmadas</option>
+                            <option value="CANCELADA">Canceladas</option>
+                            <option value="COMPLETADA">Completadas</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filtroEstablecimiento" class="form-label">Establecimiento</label>
+                        <select id="filtroEstablecimiento" class="form-select">
+                            <option value="todos">Todos</option>
+                            <!-- Se llenará dinámicamente con JavaScript -->
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="busqueda" class="form-label">Buscar</label>
+                        <div class="input-group">
+                            <input type="text" id="busqueda" class="form-control" placeholder="Servicio, código, etc.">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tabs para organizar las citas -->
+        <ul class="nav nav-tabs mb-4" id="citasTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="proximas-tab" data-bs-toggle="tab" data-bs-target="#proximas" type="button" role="tab">
+                    Próximas <span class="badge bg-primary ms-2" th:text="${#lists.size(citasPendientes)}">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial" type="button" role="tab">
+                    Historial <span class="badge bg-secondary ms-2" th:text="${#lists.size(historialCitas)}">0</span>
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="citasTabsContent">
+            <!-- Tab de próximas citas -->
+            <div class="tab-pane fade show active" id="proximas" role="tabpanel">
+                <div th:if="${#lists.isEmpty(citasPendientes)}" class="text-center py-5">
+                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                    <h4>No tienes citas próximas</h4>
+                    <p class="text-muted">¿Qué tal si reservas una nueva cita ahora?</p>
+                    <a th:href="@{/cliente/citas/reservar}" class="btn btn-primary mt-2">
+                        <i class="fas fa-calendar-plus me-2"></i> Reservar Cita
+                    </a>
+                </div>
+                
+                <div th:unless="${#lists.isEmpty(citasPendientes)}" class="card shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Establecimiento</th>
+                                    <th>Servicio</th>
+                                    <th>Fecha y Hora</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="cita : ${citasPendientes}">
+                                    <td th:text="${cita.nombreEstablecimiento}">Barbería</td>
+                                    <td th:text="${cita.nombreServicio}">Corte de pelo</td>
+                                    <td th:text="${#temporals.format(cita.fechaHora, 'dd/MM/yyyy HH:mm')}">01/01/2025 10:00</td>
+                                    <td>
+                                        <span th:class="${'badge ' + (cita.estado == T(com.felicita.entidades.Cita.EstadoCita).PENDIENTE ? 'bg-warning' : 'bg-success')}"
+                                              th:text="${cita.estado}">Estado</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a th:href="@{/cliente/citas/{id}(id=${cita.id})}" class="btn btn-outline-primary" title="Ver detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <button th:if="${cita.estado == T(com.felicita.entidades.Cita.EstadoCita).PENDIENTE}"
+                                                    class="btn btn-outline-success" title="Confirmar cita"
+                                                    th:data-bs-id="${cita.id}" data-bs-toggle="modal" data-bs-target="#confirmarModal">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button th:if="${cita.estado == T(com.felicita.entidades.Cita.EstadoCita).PENDIENTE || cita.estado == T(com.felicita.entidades.Cita.EstadoCita).CONFIRMADA}"
+                                                    class="btn btn-outline-danger" title="Cancelar cita"
+                                                    th:data-bs-id="${cita.id}" data-bs-toggle="modal" data-bs-target="#cancelarModal">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab de historial de citas -->
+            <div class="tab-pane fade" id="historial" role="tabpanel">
+                <div th:if="${#lists.isEmpty(historialCitas)}" class="text-center py-5">
+                    <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                    <h4>No tienes historial de citas</h4>
+                    <p class="text-muted">Aquí aparecerán tus citas completadas y canceladas</p>
+                </div>
+                
+                <div th:unless="${#lists.isEmpty(historialCitas)}" class="card shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Establecimiento</th>
+                                    <th>Servicio</th>
+                                    <th>Fecha y Hora</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="cita : ${historialCitas}">
+                                    <td th:text="${cita.nombreEstablecimiento}">Barbería</td>
+                                    <td th:text="${cita.nombreServicio}">Corte de pelo</td>
+                                    <td th:text="${#temporals.format(cita.fechaHora, 'dd/MM/yyyy HH:mm')}">01/01/2025 10:00</td>
+                                    <td>
+                                        <span th:class="${'badge ' + (cita.estado == T(com.felicita.entidades.Cita.EstadoCita).COMPLETADA ? 'bg-success' : (cita.estado == T(com.felicita.entidades.Cita.EstadoCita).CANCELADA ? 'bg-danger' : 'bg-secondary'))}"
+                                              th:text="${cita.estado}">Estado</span>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/cliente/citas/{id}(id=${cita.id})}" class="btn btn-sm btn-outline-primary" title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de confirmación de cita -->
+    <div class="modal fade" id="confirmarModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Cita</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas confirmar esta cita?</p>
+                    <p class="mb-0 text-muted">Al confirmar, te comprometes a asistir en la fecha y hora indicadas.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form id="confirmarForm" th:action="@{/cliente/citas/{id}/confirmar}" method="post">
+                        <button type="submit" class="btn btn-success">Confirmar Cita</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de cancelación de cita -->
+    <div class="modal fade" id="cancelarModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cancelar Cita</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas cancelar esta cita?</p>
+                    <p class="mb-0 text-muted">Recuerda que debes cancelar con al menos 24 horas de anticipación.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button>
+                    <form id="cancelarForm" th:action="@{/cliente/citas/{id}/cancelar}" method="post">
+                        <button type="submit" class="btn btn-danger">Cancelar Cita</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Incluir el pie de página -->
+    <div th:replace="fragmentos/pie :: pie"></div>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/cliente.js}"></script>
+    <script>
+        // Script para manejar los modales de confirmación y cancelación
+        document.addEventListener('DOMContentLoaded', function() {
+            // Modal de confirmación
+            var confirmarModal = document.getElementById('confirmarModal');
+            confirmarModal.addEventListener('show.bs.modal', function(event) {
+                var button = event.relatedTarget;
+                var citaId = button.getAttribute('data-bs-id');
+                
+                var form = document.getElementById('confirmarForm');
+                form.action = form.action.replace('{id}', citaId);
+            });
+            
+            // Modal de cancelación
+            var cancelarModal = document.getElementById('cancelarModal');
+            cancelarModal.addEventListener('show.bs.modal', function(event) {
+                var button = event.relatedTarget;
+                var citaId = button.getAttribute('data-bs-id');
+                
+                var form = document.getElementById('cancelarForm');
+                form.action = form.action.replace('{id}', citaId);
+            });
+            
+            // Filtrado de citas
+            const filtroBusqueda = document.getElementById('busqueda');
+            const filtroEstado = document.getElementById('filtroEstado');
+            const filtroEstablecimiento = document.getElementById('filtroEstablecimiento');
+            
+            function aplicarFiltros() {
+                const textoBusqueda = filtroBusqueda.value.toLowerCase();
+                const estadoSeleccionado = filtroEstado.value;
+                const establecimientoSeleccionado = filtroEstablecimiento.value;
+                
+                // Filtrar filas de próximas citas
+                const filasCitasProximas = document.querySelectorAll('#proximas tbody tr');
+                filasCitasProximas.forEach(fila => {
+                    const establecimiento = fila.cells[0].textContent.toLowerCase();
+                    const servicio = fila.cells[1].textContent.toLowerCase();
+                    const fecha = fila.cells[2].textContent.toLowerCase();
+                    const estado = fila.cells[3].textContent.toLowerCase();
+                    
+                    const coincideTexto = establecimiento.includes(textoBusqueda) || 
+                                        servicio.includes(textoBusqueda) || 
+                                        fecha.includes(textoBusqueda);
+                    
+                    const coincideEstado = estadoSeleccionado === 'todos' || estado === estadoSeleccionado.toLowerCase();
+                    
+                    const coincideEstablecimiento = establecimientoSeleccionado === 'todos' || 
+                                                establecimiento === establecimientoSeleccionado.toLowerCase();
+                    
+                    fila.style.display = (coincideTexto && coincideEstado && coincideEstablecimiento) ? '' : 'none';
+                });
+                
+                // Filtrar filas de historial
+                const filasHistorial = document.querySelectorAll('#historial tbody tr');
+                filasHistorial.forEach(fila => {
+                    const establecimiento = fila.cells[0].textContent.toLowerCase();
+                    const servicio = fila.cells[1].textContent.toLowerCase();
+                    const fecha = fila.cells[2].textContent.toLowerCase();
+                    const estado = fila.cells[3].textContent.toLowerCase();
+                    
+                    const coincideTexto = establecimiento.includes(textoBusqueda) || 
+                                        servicio.includes(textoBusqueda) || 
+                                        fecha.includes(textoBusqueda);
+                    
+                    const coincideEstado = estadoSeleccionado === 'todos' || estado === estadoSeleccionado.toLowerCase();
+                    
+                    const coincideEstablecimiento = establecimientoSeleccionado === 'todos' || 
+                                                establecimiento === establecimientoSeleccionado.toLowerCase();
+                    
+                    fila.style.display = (coincideTexto && coincideEstado && coincideEstablecimiento) ? '' : 'none';
+                });
+            }
+            
+            // Listener para los filtros
+            filtroBusqueda.addEventListener('input', aplicarFiltros);
+            filtroEstado.addEventListener('change', aplicarFiltros);
+            filtroEstablecimiento.addEventListener('change', aplicarFiltros);
+            
+            // Llenar el filtro de establecimientos
+            const establecimientos = new Set();
+            document.querySelectorAll('#citasTabsContent tbody tr td:first-child')
+                .forEach(td => establecimientos.add(td.textContent));
+            
+            establecimientos.forEach(establecimiento => {
+                const option = document.createElement('option');
+                option.value = establecimiento.toLowerCase();
+                option.textContent = establecimiento;
+                filtroEstablecimiento.appendChild(option);
+            });
+        });
+    </script>
+</body>
+</html>

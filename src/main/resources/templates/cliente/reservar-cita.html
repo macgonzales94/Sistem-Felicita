@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FELICITA - Reservar Cita</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/cliente.css}">
+</head>
+<body class="bg-light">
+    <!-- Incluir la barra de navegación -->
+    <div th:replace="fragmentos/cabecera :: cabecera"></div>
+    
+    <div class="container py-5">
+        <!-- Título y botón de volver -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">Reservar Cita</h1>
+            <a th:href="@{/cliente/citas}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Volver a Mis Citas
+            </a>
+        </div>
+        
+        <!-- Alertas -->
+        <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${mensaje}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- Información sobre reservas -->
+        <div th:if="${!puedeReservar}" class="alert alert-warning mb-4">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Has alcanzado el límite de citas pendientes. Para reservar una nueva cita, debes completar o cancelar alguna de tus citas actuales.
+        </div>
+        
+        <!-- Formulario de reserva -->
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form th:action="@{/cliente/citas/reservar}" method="post" th:object="${citaForm}" id="reservaForm">
+                    <div class="row g-4">
+                        <!-- Paso 1: Selección de establecimiento -->
+                        <div class="col-12 mb-2">
+                            <h5 class="card-title">1. Selecciona un establecimiento</h5>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-floating">
+                                <select class="form-select" id="establecimientoId" th:field="*{establecimientoId}" required>
+                                    <option value="">Selecciona un establecimiento</option>
+                                    <!-- Se llenará dinámicamente con JavaScript -->
+                                </select>
+                                <label for="establecimientoId">Establecimiento</label>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('establecimientoId')}" th:errors="*{establecimientoId}"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Paso 2: Selección de servicio -->
+                        <div class="col-12 mb-2 mt-4">
+                            <h5 class="card-title">2. Selecciona un servicio</h5>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-floating">
+                                <select class="form-select" id="servicioId" th:field="*{servicioId}" required disabled>
+                                    <option value="">Selecciona un servicio</option>
+                                    <!-- Se llenará dinámicamente con JavaScript -->
+                                </select>
+                                <label for="servicioId">Servicio</label>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('servicioId')}" th:errors="*{servicioId}"></div>
+                            </div>
+                            
+                            <!-- Detalle del servicio seleccionado -->
+                            <div id="servicioDetalle" class="mt-3 p-3 border rounded bg-light" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h5 id="servicioNombre">Nombre del Servicio</h5>
+                                        <p id="servicioDescripcion" class="text-muted mb-2">Descripción del servicio</p>
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge bg-info me-2" id="servicioDuracion">30 min</span>
+                                            <span class="fw-bold" id="servicioPrecio">$30.00</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <img id="servicioImagen" src="" alt="Imagen del servicio" class="img-fluid rounded" style="max-height: 100px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Paso 3: Selección de fecha y hora -->
+                        <div class="col-12 mb-2 mt-4">
+                            <h5 class="card-title">3. Selecciona fecha y hora</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="fechaCita" placeholder="Selecciona una fecha" required disabled>
+                                <label for="fechaCita">Fecha</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <select class="form-select" id="horaCita" required disabled>
+                                    <option value="">Selecciona una hora</option>
+                                    <!-- Se llenará dinámicamente con JavaScript -->
+                                </select>
+                                <label for="horaCita">Hora</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Campo oculto para la fecha y hora combinadas -->
+                        <input type="hidden" id="fechaHora" th:field="*{fechaHora}" required>
+                        
+                        <!-- Paso 4: Comentarios adicionales -->
+                        <div class="col-12 mb-2 mt-4">
+                            <h5 class="card-title">4. Comentarios adicionales (opcional)</h5>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-floating">
+                                <textarea class="form-control" id="comentarios" th:field="*{comentarios}" placeholder="Indica cualquier detalle adicional" style="height: 100px;"></textarea>
+                                <label for="comentarios">Comentarios</label>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('comentarios')}" th:errors="*{comentarios}"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Botón de reserva -->
+                        <div class="col-12 text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg" disabled id="btnReservar" th:disabled="${!puedeReservar}">
+                                <i class="fas fa-calendar-check me-2"></i> Confirmar Reserva
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Incluir el pie de página -->
+    <div th:replace="fragmentos/pie :: pie"></div>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <script th:src="@{/js/cliente.js}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const establecimientoSelect = document.getElementById('establecimientoId');
+            const servicioSelect = document.getElementById('servicioId');
+            const fechaInput = document.getElementById('fechaCita');
+            const horaSelect = document.getElementById('horaCita');
+            const fechaHoraInput = document.getElementById('fechaHora');
+            const btnReservar = document.getElementById('btnReservar');
+            const servicioDetalle = document.getElementById('servicioDetalle');
+            
+            // Cargar establecimientos
+            fetch('/api/establecimientos')
+                .then(response => response.json())
+                .then(data => {
+                    establecimientoSelect.innerHTML = '<option value="">Selecciona un establecimiento</option>';
+                    data.forEach(establecimiento => {
+                        const option = document.createElement('option');
+                        option.value = establecimiento.id;
+                        option.textContent = establecimiento.nombre;
+                        establecimientoSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error al cargar establecimientos:', error));
+            
+            // Al cambiar el establecimiento, cargar servicios
+            establecimientoSelect.addEventListener('change', function() {
+                const establecimientoId = this.value;
+                
+                if (establecimientoId) {
+                    // Habilitar el select de servicios
+                    servicioSelect.disabled = false;
+                    
+                    // Cargar servicios del establecimiento
+                    fetch(`/api/establecimientos/${establecimientoId}/servicios`)
+                        .then(response => response.json())
+                        .then(data => {
+                            servicioSelect.innerHTML = '<option value="">Selecciona un servicio</option>';
+                            data.forEach(servicio => {
+                                const option = document.createElement('option');
+                                option.value = servicio.id;
+                                option.textContent = servicio.nombre;
+                                option.dataset.precio = servicio.precio;
+                                option.dataset.duracion = servicio.duracionMinutos;
+                                option.dataset.descripcion = servicio.descripcion;
+                                option.dataset.imagen = servicio.imagenUrl || '/img/servicio-default.jpg';
+                                servicioSelect.appendChild(option);
+                            });
+                        })
+                        .catch(error => console.error('Error al cargar servicios:', error));
+                } else {
+                    // Desactivar y limpiar elementos dependientes
+                    servicioSelect.disabled = true;
+                    servicioSelect.innerHTML = '<option value="">Selecciona un servicio</option>';
+                    fechaInput.disabled = true;
+                    horaSelect.disabled = true;
+                    fechaHoraInput.value = '';
+                    servicioDetalle.style.display = 'none';
+                    actualizarBotonReservar();
+                }
+            });
+            
+            // Al cambiar el servicio, mostrar detalle y habilitar selección de fecha
+            servicioSelect.addEventListener('change', function() {
+                const servicioId = this.value;
+                
+                if (servicioId) {
+                    // Mostrar detalle del servicio
+                    const selectedOption = this.options[this.selectedIndex];
+                    document.getElementById('servicioNombre').textContent = selectedOption.textContent;
+                    document.getElementById('servicioDescripcion').textContent = selectedOption.dataset.descripcion;
+                    document.getElementById('servicioDuracion').textContent = `${selectedOption.dataset.duracion} min`;
+                    document.getElementById('servicioPrecio').textContent = `$${selectedOption.dataset.precio}`;
+                    document.getElementById('servicioImagen').src = selectedOption.dataset.imagen;
+                    servicioDetalle.style.display = 'block';
+                    
+                    // Habilitar selección de fecha
+                    fechaInput.disabled = false;
+                    
+                    // Configurar Flatpickr para selección de fecha
+                    if (!fechaInput._flatpickr) {
+                        const fp = flatpickr(fechaInput, {
+                            locale: 'es',
+                            dateFormat: 'd/m/Y',
+                            minDate: 'today',
+                            disable: [
+                                function(date) {
+                                    // Desactivar domingos (0) y posiblemente otros días según el establecimiento
+                                    return date.getDay() === 0;
+                                }
+                            ],
+                            onChange: function(selectedDates, dateStr) {
+                                // Habilitar selección de hora
+                                horaSelect.disabled = false;
+                                
+                                // Cargar horas disponibles
+                                const fecha = selectedDates[0];
+                                const establecimientoId = establecimientoSelect.value;
+                                const servicioId = servicioSelect.value;
+                                
+                                // Formatear fecha para la API
+                                const formattedDate = fecha.toISOString().split('T')[0];
+                                
+                                fetch(`/api/disponibilidad?establecimientoId=${establecimientoId}&servicioId=${servicioId}&fecha=${formattedDate}`)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        horaSelect.innerHTML = '<option value="">Selecciona una hora</option>';
+                                        data.horasDisponibles.forEach(hora => {
+                                            const option = document.createElement('option');
+                                            option.value = hora.valor;
+                                            option.textContent = hora.texto;
+                                            horaSelect.appendChild(option);
+                                        });
+                                    })
+                                    .catch(error => console.error('Error al cargar horas disponibles:', error));
+                            }
+                        });
+                    }
+                } else {
+                    // Desactivar y limpiar elementos dependientes
+                    fechaInput.disabled = true;
+                    horaSelect.disabled = true;
+                    fechaHoraInput.value = '';
+                    servicioDetalle.style.display = 'none';
+                    actualizarBotonReservar();
+                }
+            });
+            
+            // Al cambiar la hora, actualizar el campo oculto y el botón
+            horaSelect.addEventListener('change', function() {
+                const hora = this.value;
+                const fecha = fechaInput._flatpickr.selectedDates[0];
+                
+                if (hora && fecha) {
+                    // Crear objeto Date con la fecha y hora seleccionadas
+                    const fechaHora = new Date(fecha);
+                    const [hours, minutes] = hora.split(':');
+                    fechaHora.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+                    
+                    // Actualizar el campo oculto
+                    fechaHoraInput.value = fechaHora.toISOString();
+                    
+                    // Verificar disponibilidad
+                    const establecimientoId = establecimientoSelect.value;
+                    const servicioId = servicioSelect.value;
+                    
+                    fetch(`/cliente/citas/api/verificar-disponibilidad?establecimientoId=${establecimientoId}&servicioId=${servicioId}&fechaHora=${fechaHoraInput.value}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.disponible) {
+                                // Habilitar botón de reserva
+                                btnReservar.disabled = false;
+                            } else {
+                                // Mostrar mensaje de error
+                                alert('Lo sentimos, el horario seleccionado ya no está disponible. Por favor selecciona otro horario.');
+                                horaSelect.value = '';
+                                fechaHoraInput.value = '';
+                                btnReservar.disabled = true;
+                            }
+                        })
+                        .catch(error => console.error('Error al verificar disponibilidad:', error));
+                } else {
+                    fechaHoraInput.value = '';
+                    actualizarBotonReservar();
+                }
+            });
+            
+            function actualizarBotonReservar() {
+                // Verificar todos los campos requeridos
+                const camposCompletos = establecimientoSelect.value && 
+                                       servicioSelect.value && 
+                                       fechaHoraInput.value;
+                
+                btnReservar.disabled = !camposCompletos || !puedeReservar;
+            }
+            
+            // Variable para controlar si el usuario puede reservar
+            const puedeReservar = [[${puedeReservar}]];
+        });
+    </script>
+</body>
+</html>

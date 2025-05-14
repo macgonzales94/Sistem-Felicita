@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FELICITA - Inicio Cliente</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/cliente.css}">
+</head>
+<body class="bg-light">
+    <!-- Incluir la barra de navegación -->
+    <div th:replace="fragmentos/cabecera :: cabecera"></div>
+    
+    <div class="container py-5">
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1 class="mb-3">Bienvenido, <span th:text="${cliente.nombre}">Usuario</span></h1>
+                <p class="lead">Encuentra y reserva los mejores servicios de belleza y barbería cerca de ti.</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a th:href="@{/cliente/citas/reservar}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-calendar-plus me-2"></i> Reservar Cita
+                </a>
+            </div>
+        </div>
+        
+        <!-- Cards de accesos rápidos -->
+        <div class="row mb-5">
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="icon-wrapper mb-3 bg-primary-light">
+                            <i class="fas fa-calendar-alt fa-2x text-primary"></i>
+                        </div>
+                        <h5 class="card-title">Mis Citas</h5>
+                        <p class="card-text">Gestiona tus reservas y visualiza tu historial de citas.</p>
+                        <a th:href="@{/cliente/citas}" class="btn btn-outline-primary mt-3">Ver Citas</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="icon-wrapper mb-3 bg-primary-light">
+                            <i class="fas fa-search fa-2x text-primary"></i>
+                        </div>
+                        <h5 class="card-title">Establecimientos</h5>
+                        <p class="card-text">Explora barberías y salones de belleza en tu zona.</p>
+                        <a th:href="@{/cliente/establecimientos}" class="btn btn-outline-primary mt-3">Explorar</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="icon-wrapper mb-3 bg-primary-light">
+                            <i class="fas fa-gift fa-2x text-primary"></i>
+                        </div>
+                        <h5 class="card-title">Gift Cards</h5>
+                        <p class="card-text">Adquiere y gestiona tus gift cards para servicios.</p>
+                        <a th:href="@{/cliente/giftcards}" class="btn btn-outline-primary mt-3">Ver Gift Cards</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="icon-wrapper mb-3 bg-primary-light">
+                            <i class="fas fa-user-edit fa-2x text-primary"></i>
+                        </div>
+                        <h5 class="card-title">Mi Perfil</h5>
+                        <p class="card-text">Actualiza tus datos personales y preferencias.</p>
+                        <a th:href="@{/cliente/perfil}" class="btn btn-outline-primary mt-3">Editar Perfil</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Establecimientos recomendados -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="border-bottom pb-2 mb-4">Establecimientos recomendados</h2>
+            </div>
+            
+            <!-- Aquí se cargarán los establecimientos recomendados dinámicamente -->
+            <div class="col-12">
+                <div class="row" id="establecimientos-recomendados-container">
+                    <!-- Placeholder mientras se cargan los datos -->
+                    <div class="col-md-4 mb-4" th:each="i : ${#numbers.sequence(1, 3)}">
+                        <div class="card border-0 shadow-sm establecimiento-card placeholder-glow">
+                            <div class="card-img-top placeholder" style="height: 200px;"></div>
+                            <div class="card-body">
+                                <h5 class="card-title placeholder-glow">
+                                    <span class="placeholder col-6"></span>
+                                </h5>
+                                <p class="card-text placeholder-glow">
+                                    <span class="placeholder col-7"></span>
+                                    <span class="placeholder col-4"></span>
+                                    <span class="placeholder col-4"></span>
+                                </p>
+                                <div class="d-flex justify-content-between">
+                                    <span class="placeholder col-3"></span>
+                                    <span class="placeholder col-2"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Próximas citas -->
+        <div class="row">
+            <div class="col-12">
+                <h2 class="border-bottom pb-2 mb-4">Próximas citas</h2>
+            </div>
+            
+            <div class="col-12" id="proximas-citas-container">
+                <!-- Mensaje si no hay citas -->
+                <div class="alert alert-info text-center py-4" id="no-citas-mensaje" style="display: none;">
+                    <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                    <h5>No tienes citas próximas</h5>
+                    <p class="mb-0">¿Qué tal si reservas una nueva cita ahora?</p>
+                    <a th:href="@{/cliente/citas/reservar}" class="btn btn-primary mt-3">
+                        <i class="fas fa-calendar-plus me-2"></i> Reservar Cita
+                    </a>
+                </div>
+                
+                <!-- Aquí se cargarán las próximas citas dinámicamente -->
+                <div class="table-responsive" id="proximas-citas-table" style="display: none;">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Establecimiento</th>
+                                <th>Servicio</th>
+                                <th>Fecha y Hora</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="proximas-citas-tbody">
+                            <!-- Placeholder mientras se cargan los datos -->
+                            <tr class="placeholder-glow">
+                                <td><span class="placeholder col-8"></span></td>
+                                <td><span class="placeholder col-8"></span></td>
+                                <td><span class="placeholder col-8"></span></td>
+                                <td><span class="placeholder col-6"></span></td>
+                                <td><span class="placeholder col-10"></span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Incluir el pie de página -->
+    <div th:replace="fragmentos/pie :: pie"></div>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/cliente.js}"></script>
+    <script th:src="@{/js/cliente-inicio.js}"></script>
+</body>
+</html>

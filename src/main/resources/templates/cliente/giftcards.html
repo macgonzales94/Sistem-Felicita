@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FELICITA - Mis Gift Cards</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/cliente.css}">
+</head>
+<body class="bg-light">
+    <!-- Incluir la barra de navegación -->
+    <div th:replace="fragmentos/cabecera :: cabecera"></div>
+    
+    <div class="container py-5">
+        <!-- Título y botones de acción -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">Mis Gift Cards</h1>
+            <div>
+                <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#nuevaGiftCardModal">
+                    <i class="fas fa-plus-circle me-2"></i> Nueva Gift Card
+                </button>
+                <a th:href="@{/cliente/giftcards/enviar}" class="btn btn-outline-primary">
+                    <i class="fas fa-gift me-2"></i> Enviar Regalo
+                </a>
+            </div>
+        </div>
+        
+        <!-- Alertas -->
+        <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${mensaje}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- Banner informativo sobre Gift Cards -->
+        <div class="card bg-primary text-white mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-2 text-center mb-3 mb-md-0">
+                        <i class="fas fa-gift fa-4x"></i>
+                    </div>
+                    <div class="col-md-7 mb-3 mb-md-0">
+                        <h4 class="card-title">¿Qué son las Gift Cards?</h4>
+                        <p class="card-text mb-0">Adquiere gift cards para ti o para regalar, y utilízalas como método de pago en los establecimientos participantes.</p>
+                    </div>
+                    <div class="col-md-3 text-md-end">
+                        <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#infoGiftCardModal">
+                            <i class="fas fa-info-circle me-2"></i> Más Información
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Gift Cards activas -->
+        <h2 class="border-bottom pb-2 mb-4">Gift Cards Activas</h2>
+        
+        <div th:if="${#lists.isEmpty(giftCards) || !giftCards.?[activa].size()}" class="text-center py-5">
+            <i class="fas fa-gift fa-3x text-muted mb-3"></i>
+            <h4>No tienes gift cards activas</h4>
+            <p class="text-muted">¿Qué tal si adquieres una nueva gift card ahora?</p>
+            <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#nuevaGiftCardModal">
+                <i class="fas fa-plus-circle me-2"></i> Nueva Gift Card
+            </button>
+        </div>
+        
+        <div th:unless="${#lists.isEmpty(giftCards) || !giftCards.?[activa].size()}" class="row">
+            <div th:each="giftCard : ${giftCards}" th:if="${giftCard.activa}" class="col-md-4 mb-4">
+                <div class="card h-100 gift-card-item" th:classappend="${giftCard.valida ? '' : 'border-danger bg-light'}">
+                    <div class="card-status-ribbon" th:if="${!giftCard.valida}">
+                        <span>Expirada</span>
+                    </div>
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0" th:text="${giftCard.nombreEstablecimiento}">Establecimiento</h5>
+                        <span class="badge bg-primary" th:text="${'$' + giftCard.valor}">$50.00</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3 d-flex justify-content-center">
+                            <div class="codigo-giftcard">
+                                <span th:text="${giftCard.codigo}">GC1234567890123456</span>
+                                <button class="btn btn-sm codigo-copy" th:data-codigo="${giftCard.codigo}">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" 
+                                     th:style="'width: ' + ${(giftCard.saldo / giftCard.valor) * 100} + '%'" 
+                                     th:attr="aria-valuenow=${(giftCard.saldo / giftCard.valor) * 100}"
+                                     aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted">Saldo Disponible</small>
+                                <small class="fw-bold" th:text="${'$' + giftCard.saldo}">$30.00</small>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Expira: <span th:text="${#temporals.format(giftCard.fechaExpiracion, 'dd/MM/yyyy')}">01/01/2026</span>
+                            </small>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input toggle-gift-card" type="checkbox" th:id="${'toggle-' + giftCard.id}" checked
+                                       th:data-id="${giftCard.id}">
+                                <label class="form-check-label" th:for="${'toggle-' + giftCard.id}">Activa</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <div class="d-grid">
+                            <a th:href="@{/cliente/giftcards/{id}(id=${giftCard.id})}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye me-2"></i> Ver Detalles
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Gift Cards inactivas -->
+        <h2 class="border-bottom pb-2 mb-4 mt-5">Gift Cards Inactivas</h2>
+        
+        <div th:if="${#lists.isEmpty(giftCards) || !giftCards.?[!activa].size()}" class="text-center py-5">
+            <i class="fas fa-gift fa-3x text-muted mb-3"></i>
+            <h4>No tienes gift cards inactivas</h4>
+        </div>
+        
+        <div th:unless="${#lists.isEmpty(giftCards) || !giftCards.?[!activa].size()}" class="row">
+            <div th:each="giftCard : ${giftCards}" th:if="${!giftCard.activa}" class="col-md-4 mb-4">
+                <div class="card h-100 gift-card-item opacity-75">
+                    <div class="card-status-ribbon">
+                        <span>Inactiva</span>
+                    </div>
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0" th:text="${giftCard.nombreEstablecimiento}">Establecimiento</h5>
+                        <span class="badge bg-secondary" th:text="${'$' + giftCard.valor}">$50.00</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3 d-flex justify-content-center">
+                            <div class="codigo-giftcard">
+                                <span th:text="${giftCard.codigo}">GC1234567890123456</span>
+                                <button class="btn btn-sm codigo-copy" th:data-codigo="${giftCard.codigo}">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="progress">
+                                <div class="progress-bar bg-secondary" role="progressbar" 
+                                     th:style="'width: ' + ${(giftCard.saldo / giftCard.valor) * 100} + '%'" 
+                                     th:attr="aria-valuenow=${(giftCard.saldo / giftCard.valor) * 100}"
+                                     aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted">Saldo Disponible</small>
+                                <small class="fw-bold" th:text="${'$' + giftCard.saldo}">$30.00</small>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Expira: <span th:text="${#temporals.format(giftCard.fechaExpiracion, 'dd/MM/yyyy')}">01/01/2026</span>
+                            </small>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input toggle-gift-card" type="checkbox" th:id="${'toggle-' + giftCard.id}"
+                                       th:data-id="${giftCard.id}">
+                                <label class="form-check-label" th:for="${'toggle-' + giftCard.id}">Activa</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <div class="d-grid">
+                            <a th:href="@{/cliente/giftcards/{id}(id=${giftCard.id})}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-eye me-2"></i> Ver Detalles
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de nueva Gift Card -->
+    <div class="modal fade" id="nuevaGiftCardModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nueva Gift Card</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form th:action="@{/cliente/giftcards}" method="post" th:object="${nuevaGiftCardForm}">
+                        <div class="mb-3">
+                            <label for="establecimientoId" class="form-label">Establecimiento</label>
+                            <select class="form-select" id="establecimientoId" th:field="*{establecimientoId}" required>
+                                <option value="">Selecciona un establecimiento</option>
+                                <!-- Se llenará dinámicamente con JavaScript -->
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('establecimientoId')}" th:errors="*{establecimientoId}"></div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="valor" class="form-label">Valor</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="valor" th:field="*{valor}" min="10" step="5" required>
+                            </div>
+                            <div class="form-text">El valor mínimo es $10.00</div>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('valor')}" th:errors="*{valor}"></div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="mensaje" class="form-label">Mensaje (opcional)</label>
+                            <textarea class="form-control" id="mensaje" th:field="*{mensaje}" rows="3"></textarea>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('mensaje')}" th:errors="*{mensaje}"></div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <small>
+                                <i class="fas fa-info-circle me-2"></i>
+                                Las gift cards son válidas por 1 año desde la fecha de emisión y pueden ser utilizadas en el establecimiento seleccionado.
+                            </small>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Crear Gift Card</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de información sobre Gift Cards -->
+    <div class="modal fade" id="infoGiftCardModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Sobre las Gift Cards de FELICITA</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-4 mb-md-0">
+                            <i class="fas fa-gift fa-5x text-primary mb-3"></i>
+                        </div>
+                        <div class="col-md-8">
+                            <h4>¿Qué son las Gift Cards?</h4>
+                            <p>Las Gift Cards de FELICITA son tarjetas de regalo digitales que puedes utilizar como método de pago en los establecimientos participantes.</p>
+                            
+                            <h4 class="mt-4">Características principales</h4>
+                            <ul>
+                                <li><strong>Validez:</strong> 1 año desde la fecha de emisión</li>
+                                <li><strong>Valor mínimo:</strong> $10.00</li>
+                                <li><strong>Uso:</strong> Exclusivo para el establecimiento seleccionado</li>
+                                <li><strong>Saldo:</strong> Puedes utilizar el saldo en múltiples visitas</li>
+                                <li><strong>Transferencia:</strong> Puedes enviar gift cards como regalo a otras personas</li>
+                            </ul>
+                            
+                            <h4 class="mt-4">¿Cómo utilizar una Gift Card?</h4>
+                            <p>Al momento de pagar en el establecimiento, simplemente muestra el código de tu Gift Card. El personal del establecimiento verificará el saldo y aplicará el descuento correspondiente a tu compra.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Incluir el pie de página -->
+    <div th:replace="fragmentos/pie :: pie"></div>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/cliente.js}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cargar establecimientos para el formulario de nueva gift card
+            fetch('/api/establecimientos')
+                .then(response => response.json())
+                .then(data => {
+                    const establecimientoSelect = document.getElementById('establecimientoId');
+                    establecimientoSelect.innerHTML = '<option value="">Selecciona un establecimiento</option>';
+                    
+                    data.forEach(establecimiento => {
+                        const option = document.createElement('option');
+                        option.value = establecimiento.id;
+                        option.textContent = establecimiento.nombre;
+                        establecimientoSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error al cargar establecimientos:', error));
+            
+            // Manejar los toggles de activación/desactivación de gift cards
+            const toggles = document.querySelectorAll('.toggle-gift-card');
+            
+            toggles.forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    const giftCardId = this.getAttribute('data-id');
+                    const isActive = this.checked;
+                    
+                    // Enviar solicitud al servidor para activar/desactivar
+                    fetch(`/cliente/giftcards/api/${giftCardId}/${isActive ? 'activar' : 'desactivar'}`, {
+                        method: 'POST'
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error al cambiar el estado de la gift card');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Actualizar la interfaz
+                        const cardItem = this.closest('.gift-card-item');
+                        
+                        if (isActive) {
+                            cardItem.classList.remove('opacity-75');
+                            cardItem.querySelector('.progress-bar').classList.remove('bg-secondary');
+                            cardItem.querySelector('.progress-bar').classList.add('bg-primary');
+                            cardItem.querySelector('.card-footer .btn').classList.remove('btn-outline-secondary');
+                            cardItem.querySelector('.card-footer .btn').classList.add('btn-outline-primary');
+                            cardItem.querySelector('.badge').classList.remove('bg-secondary');
+                            cardItem.querySelector('.badge').classList.add('bg-primary');
+                            
+                            // Eliminar el ribbon si existe
+                            const ribbon = cardItem.querySelector('.card-status-ribbon');
+                            if (ribbon) {
+                                ribbon.parentNode.removeChild(ribbon);
+                            }
+                        } else {
+                            cardItem.classList.add('opacity-75');
+                            cardItem.querySelector('.progress-bar').classList.remove('bg-primary');
+                            cardItem.querySelector('.progress-bar').classList.add('bg-secondary');
+                            cardItem.querySelector('.card-footer .btn').classList.remove('btn-outline-primary');
+                            cardItem.querySelector('.card-footer .btn').classList.add('btn-outline-secondary');
+                            cardItem.querySelector('.badge').classList.remove('bg-primary');
+                            cardItem.querySelector('.badge').classList.add('bg-secondary');
+                            
+                            // Agregar el ribbon si no existe
+                            if (!cardItem.querySelector('.card-status-ribbon')) {
+                                const ribbon = document.createElement('div');
+                                ribbon.className = 'card-status-ribbon';
+                                ribbon.innerHTML = '<span>Inactiva</span>';
+                                cardItem.prepend(ribbon);
+                            }
+                        }
+                        
+                        // Recargar la página para actualizar las listas
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error al cambiar el estado de la gift card');
+                        this.checked = !isActive;  // Revertir el toggle
+                    });
+                });
+            });
+            
+            // Copiar código de gift card al portapapeles
+            const copyButtons = document.querySelectorAll('.codigo-copy');
+            
+            copyButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const codigo = this.getAttribute('data-codigo');
+                    
+                    // Usar la API del portapapeles
+                    navigator.clipboard.writeText(codigo)
+                        .then(() => {
+                            // Cambiar el ícono temporalmente para indicar éxito
+                            const icon = this.querySelector('i');
+                            icon.className = 'fas fa-check';
+                            
+                            setTimeout(() => {
+                                icon.className = 'fas fa-copy';
+                            }, 1500);
+                        })
+                        .catch(err => {
+                            console.error('Error al copiar:', err);
+                            alert('No se pudo copiar el código');
+                        });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
