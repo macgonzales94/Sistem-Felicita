@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FELICITA - Mis Establecimientos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/proadmin.css}">
+</head>
+<body>
+    <!-- Incluir el menú lateral -->
+    <div th:replace="~{fragmentos/menu :: menu}"></div>
+    
+    <main class="content">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Mis Establecimientos</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <button type="button" class="btn btn-sm btn-outline-secondary me-2" id="btnActualizar">
+                    <i class="fas fa-sync-alt me-1"></i> Actualizar
+                </button>
+                <a th:href="@{/proadmin/establecimientos/nuevo}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus me-1"></i> Nuevo Establecimiento
+                </a>
+            </div>
+        </div>
+        
+        <!-- Alertas -->
+        <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${mensaje}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- Listado de establecimientos -->
+        <div class="row" th:if="${not #lists.isEmpty(establecimientos)}">
+            <div class="col-xl-4 col-md-6 mb-4" th:each="establecimiento : ${establecimientos}">
+                <div class="card shadow h-100">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary" th:text="${establecimiento.nombre}">Nombre del Establecimiento</h6>
+                        <span th:if="${establecimiento.activo}" class="badge bg-success">Activo</span>
+                        <span th:unless="${establecimiento.activo}" class="badge bg-danger">Inactivo</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="fas fa-store fa-fw text-primary me-2"></i>
+                            <span th:text="${establecimiento.tipoEstablecimiento == 'BARBERIA' ? 'Barbería' : 'Salón de Belleza'}">Tipo</span>
+                        </div>
+                        <div class="mb-3">
+                            <i class="fas fa-map-marker-alt fa-fw text-primary me-2"></i>
+                            <span th:text="${establecimiento.direccion}">Dirección</span>
+                        </div>
+                        <div class="mb-3">
+                            <i class="fas fa-phone fa-fw text-primary me-2"></i>
+                            <span th:text="${establecimiento.telefono}">Teléfono</span>
+                        </div>
+                        <div class="mb-3">
+                            <i class="fas fa-clock fa-fw text-primary me-2"></i>
+                            <span th:text="${establecimiento.horaApertura + ' - ' + establecimiento.horaCierre}">Horario</span>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <a th:href="@{/proadmin/establecimientos/{id}(id=${establecimiento.id})}" class="btn btn-info w-100">
+                                        <i class="fas fa-eye me-1"></i> Ver
+                                    </a>
+                                </div>
+                                <div class="col-6">
+                                    <a th:href="@{/proadmin/establecimientos/{id}/editar(id=${establecimiento.id})}" class="btn btn-primary w-100">
+                                        <i class="fas fa-edit me-1"></i> Editar
+                                    </a>
+                                </div>
+                                <div class="col-12 mt-2">
+                                    <a th:href="@{/proadmin/establecimientos/{id}/servicios(id=${establecimiento.id})}" class="btn btn-success w-100">
+                                        <i class="fas fa-cogs me-1"></i> Gestionar Servicios
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted">
+                        <small>
+                            <i class="fas fa-calendar-alt me-1"></i> Creado: 
+                            <span th:text="${#temporals.format(establecimiento.fechaRegistro, 'dd/MM/yyyy')}">Fecha</span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mensaje cuando no hay establecimientos -->
+        <div class="card shadow mb-4" th:if="${#lists.isEmpty(establecimientos)}">
+            <div class="card-body text-center p-5">
+                <div class="display-1 text-muted mb-3">
+                    <i class="fas fa-store-slash"></i>
+                </div>
+                <h4 class="mb-3">No tienes establecimientos registrados</h4>
+                <p class="mb-4">Comienza agregando tu primer establecimiento para gestionar tus servicios y citas.</p>
+                <a th:href="@{/proadmin/establecimientos/nuevo}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i> Crear mi primer establecimiento
+                </a>
+            </div>
+        </div>
+        
+        <!-- Estadísticas generales -->
+        <div class="row mt-4" th:if="${not #lists.isEmpty(establecimientos)}">
+            <div class="col-12">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Estadísticas Generales</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-primary shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                    Establecimientos</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${#lists.size(establecimientos)}">0</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-store fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-success shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                    Servicios Totales</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${estadisticas.totalServicios}">0</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-concierge-bell fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-info shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                    Citas Totales</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${estadisticas.totalCitas}">0</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-warning shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                    Clientes Totales</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${estadisticas.clientesTotales}">0</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-users fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <a th:href="@{/proadmin/estadisticas}" class="btn btn-primary">
+                                <i class="fas fa-chart-bar me-1"></i> Ver Estadísticas Detalladas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/proadmin.js}"></script>
+</body>
+</html>

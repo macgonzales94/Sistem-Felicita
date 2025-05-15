@@ -3,6 +3,7 @@ package com.felicita.configuracion;
 import com.felicita.servicios.impl.UsuarioDetallesServicioImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,21 +29,40 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
             
-        final String requestTokenHeader = request.getHeader("Authorization");
-        
-        String username = null;
+        // Primero verificamos si hay un token en las cookies
         String jwtToken = null;
+        String username = null;
         
-        // El token JWT está en el formato "Bearer token"
-        if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
-            jwtToken = requestTokenHeader.substring(7);
-            try {
-                username = jwtTokenUtil.extraerUsername(jwtToken);
-            } catch (Exception e) {
-                logger.warn("Token JWT inválido");
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("jwtToken".equals(cookie.getName())) {
+                    jwtToken = cookie.getValue();
+                    try {
+                        username = jwtTokenUtil.extraerUsername(jwtToken);
+                    } catch (Exception e) {
+                        logger.warn("Token JWT en cookie inválido");
+                    }
+                    break;
+                }
             }
-        } else {
-            logger.warn("JWT no comienza con la cadena Bearer");
+        }
+        
+        // Si no hay un token en las cookies, verificamos en el header Authorization
+        if (username == null) {
+            final String requestTokenHeader = request.getHeader("Authorization");
+            
+            // El token JWT está en el formato "Bearer token"
+            if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
+                jwtToken = requestTokenHeader.substring(7);
+                try {
+                    username = jwtTokenUtil.extraerUsername(jwtToken);
+                } catch (Exception e) {
+                    logger.warn("Token JWT inválido en el header");
+                }
+            } else {
+                logger.debug("JWT no comienza con la cadena Bearer o no está presente en el header");
+            }
         }
         
         // Validar el token

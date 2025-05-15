@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FELICITA - Estadísticas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/proadmin.css}">
+</head>
+<body>
+    <!-- Incluir el menú lateral -->
+    <div th:replace="~{fragmentos/menu :: menu}"></div>
+    
+    <main class="content">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Estadísticas y Reportes</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btnActualizar">
+                        <i class="fas fa-sync-alt me-1"></i> Actualizar
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-file-export me-1"></i> Exportar
+                    </button>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="dropdownPeriodo" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-calendar me-1"></i> Periodo
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownPeriodo">
+                        <li><a class="dropdown-item" href="#" data-periodo="7">Última Semana</a></li>
+                        <li><a class="dropdown-item" href="#" data-periodo="30">Último Mes</a></li>
+                        <li><a class="dropdown-item" href="#" data-periodo="90">Último Trimestre</a></li>
+                        <li><a class="dropdown-item" href="#" data-periodo="365">Último Año</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" data-periodo="personalizado">Personalizado</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filtros de período personalizado (inicialmente oculto) -->
+        <div class="card shadow mb-4" id="filtroPeriodoPersonalizado" style="display: none;">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-5">
+                        <label for="fechaInicio" class="form-label">Fecha Inicio</label>
+                        <input type="date" class="form-control" id="fechaInicio">
+                    </div>
+                    <div class="col-md-5">
+                        <label for="fechaFin" class="form-label">Fecha Fin</label>
+                        <input type="date" class="form-control" id="fechaFin">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button class="btn btn-primary w-100" id="btnAplicarPeriodo">Aplicar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tarjetas de resumen -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    Citas Totales</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalCitas" th:text="${estadisticas.totalCitas}">0</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    Ingresos</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalIngresos" th:text="${#numbers.formatCurrency(estadisticas.ingresosTotales)}">$0</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    Tasa de Asistencia</div>
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col-auto">
+                                        <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800" id="tasaAsistencia" th:text="${estadisticas.tasaAsistencia + '%'}">0%</div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="progress progress-sm mr-2">
+                                            <div class="progress-bar bg-info" role="progressbar" th:style="'width: ' + ${estadisticas.tasaAsistencia} + '%'" 
+                                                aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                    Clientes Nuevos</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="clientesNuevos" th:text="${estadisticas.clientesNuevos}">0</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-users fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Gráficos -->
+        <div class="row">
+            <!-- Gráfico de Citas por Día -->
+            <div class="col-xl-8 col-lg-7">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">Citas por Día</h6>
+                        <div class="dropdown no-arrow">
+                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                                <div class="dropdown-header">Opciones:</div>
+                                <a class="dropdown-item" href="#">Ver Detalles</a>
+                                <a class="dropdown-item" href="#">Descargar Imagen</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#">Exportar Datos</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-area">
+                            <canvas id="citasPorDiaChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Gráfico de Estados de Citas -->
+            <div class="col-xl-4 col-lg-5">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">Estado de Citas</h6>
+                        <div class="dropdown no-arrow">
+                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                                <div class="dropdown-header">Opciones:</div>
+                                <a class="dropdown-item" href="#">Ver Detalles</a>
+                                <a class="dropdown-item" href="#">Descargar Imagen</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#">Exportar Datos</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-pie pt-4 pb-2">
+                            <canvas id="estadosChart"></canvas>
+                        </div>
+                        <div class="mt-4 text-center small">
+                            <span class="me-2">
+                                <i class="fas fa-circle text-primary"></i> Completadas
+                            </span>
+                            <span class="me-2">
+                                <i class="fas fa-circle text-success"></i> Confirmadas
+                            </span>
+                            <span class="me-2">
+                                <i class="fas fa-circle text-warning"></i> Pendientes
+                            </span>
+                            <span class="me-2">
+                                <i class="fas fa-circle text-danger"></i> Canceladas
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Servicios más populares y distribución de ingresos -->
+        <div class="row">
+            <!-- Servicios más populares -->
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Servicios Más Populares</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="tablaServiciosPopulares" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>Servicio</th>
+                                        <th>Citas</th>
+                                        <th>Porcentaje</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Datos generados dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Distribución de ingresos -->
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Distribución de Ingresos</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-pie">
+                            <canvas id="ingresosPorServicioChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script th:src="@{/js/proadmin.js}"></script>
+    <script>
+        // Script para manejar los gráficos y estadísticas
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cargar los datos iniciales de estadísticas
+            cargarEstadisticas('30'); // Por defecto último mes
+            
+            // Manejador de periodo personalizado
+            document.querySelectorAll('[data-periodo]').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const periodo = this.getAttribute('data-periodo');
+                    
+                    if (periodo === 'personalizado') {
+                        document.getElementById('filtroPeriodoPersonalizado').style.display = 'block';
+                    } else {
+                        document.getElementById('filtroPeriodoPersonalizado').style.display = 'none';
+                        cargarEstadisticas(periodo);
+                    }
+                });
+            });
+            
+            // Manejador para aplicar periodo personalizado
+            document.getElementById('btnAplicarPeriodo').addEventListener('click', function() {
+                const fechaInicio = document.getElementById('fechaInicio').value;
+                const fechaFin = document.getElementById('fechaFin').value;
+                
+                if (fechaInicio && fechaFin) {
+                    cargarEstadisticas('personalizado', fechaInicio, fechaFin);
+                } else {
+                    alert('Por favor selecciona fechas de inicio y fin');
+                }
+            });
+            
+            // Función para cargar estadísticas desde el servidor
+            function cargarEstadisticas(periodo, fechaInicio = null, fechaFin = null) {
+                let url = `/proadmin/api/estadisticas?periodo=${periodo}`;
+                
+                if (periodo === 'personalizado' && fechaInicio && fechaFin) {
+                    url += `&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+                }
+                
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        actualizarEstadisticas(data);
+                    })
+                    .catch(error => console.error('Error cargando estadísticas:', error));
+            }
+            
+            // Función para actualizar las estadísticas en la interfaz
+            function actualizarEstadisticas(data) {
+                // Actualizar tarjetas resumen
+                document.getElementById('totalCitas').textContent = data.totalCitas;
+                document.getElementById('totalIngresos').textContent = formatter.format(data.ingresosTotales);
+                document.getElementById('tasaAsistencia').textContent = data.tasaAsistencia + '%';
+                document.getElementById('clientesNuevos').textContent = data.clientesNuevos;
+                
+                // Actualizar gráficos
+                actualizarGraficoCitasPorDia(data.citasPorDia);
+                actualizarGraficoEstados(data.estadosCitas);
+                actualizarTablaServiciosPopulares(data.serviciosPopulares);
+                actualizarGraficoIngresos(data.ingresosPorServicio);
+            }
+            
+            // Función para actualizar el gráfico de citas por día
+            function actualizarGraficoCitasPorDia(datos) {
+                const ctx = document.getElementById('citasPorDiaChart').getContext('2d');
+                
+                if (window.citasPorDiaChart) {
+                    window.citasPorDiaChart.destroy();
+                }
+                
+                window.citasPorDiaChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: datos.map(item => item.fecha),
+                        datasets: [{
+                            label: 'Número de Citas',
+                            lineTension: 0.3,
+                            backgroundColor: "rgba(78, 115, 223, 0.05)",
+                            borderColor: "rgba(78, 115, 223, 1)",
+                            pointRadius: 3,
+                            pointBackgroundColor: "rgba(78, 115, 223, 1)",
+                            pointBorderColor: "rgba(78, 115, 223, 1)",
+                            pointHoverRadius: 3,
+                            pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+                            pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+                            pointHitRadius: 10,
+                            pointBorderWidth: 2,
+                            data: datos.map(item => item.cantidad)
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 25,
+                                top: 25,
+                                bottom: 0
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    maxTicksLimit: 7
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    maxTicksLimit: 5,
+                                    padding: 10
+                                },
+                                grid: {
+                                    color: "rgb(234, 236, 244)",
+                                    zeroLineColor: "rgb(234, 236, 244)",
+                                    drawBorder: false,
+                                    borderDash: [2],
+                                    zeroLineBorderDash: [2]
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Función para actualizar el gráfico de estados de citas
+            function actualizarGraficoEstados(datos) {
+                const ctx = document.getElementById('estadosChart').getContext('2d');
+                
+                if (window.estadosChart) {
+                    window.estadosChart.destroy();
+                }
+                
+                window.estadosChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Completadas', 'Confirmadas', 'Pendientes', 'Canceladas', 'No Asistió'],
+                        datasets: [{
+                            data: [
+                                datos.COMPLETADA || 0,
+                                datos.CONFIRMADA || 0,
+                                datos.PENDIENTE || 0,
+                                datos.CANCELADA || 0,
+                                datos.NO_ASISTIO || 0
+                            ],
+                            backgroundColor: [
+                                '#4e73df',
+                                '#1cc88a',
+                                '#f6c23e',
+                                '#e74a3b',
+                                '#858796'
+                            ],
+                            hoverBackgroundColor: [
+                                '#2e59d9',
+                                '#17a673',
+                                '#f4b30d',
+                                '#d52a1a',
+                                '#6e707e'
+                            ],
+                            hoverBorderColor: "rgba(234, 236, 244, 1)",
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        cutout: '70%'
+                    }
+                });
+            }
+            
+            // Función para actualizar la tabla de servicios populares
+            function actualizarTablaServiciosPopulares(datos) {
+                const tabla = document.getElementById('tablaServiciosPopulares').getElementsByTagName('tbody')[0];
+                tabla.innerHTML = '';
+                
+                datos.forEach(servicio => {
+                    const fila = tabla.insertRow();
+                    
+                    const celdaNombre = fila.insertCell(0);
+                    celdaNombre.textContent = servicio.nombre;
+                    
+                    const celdaCitas = fila.insertCell(1);
+                    celdaCitas.textContent = servicio.citas;
+                    
+                    const celdaPorcentaje = fila.insertCell(2);
+                    
+                    // Crear barra de progreso
+                    const barraContainer = document.createElement('div');
+                    barraContainer.className = 'progress';
+                    
+                    const barra = document.createElement('div');
+                    barra.className = 'progress-bar bg-primary';
+                    barra.style.width = servicio.porcentaje + '%';
+                    barra.textContent = servicio.porcentaje + '%';
+                    
+                    barraContainer.appendChild(barra);
+                    celdaPorcentaje.appendChild(barraContainer);
+                });
+            }
+            
+            // Función para actualizar el gráfico de ingresos por servicio
+            function actualizarGraficoIngresos(datos) {
+                const ctx = document.getElementById('ingresosPorServicioChart').getContext('2d');
+                
+                if (window.ingresosPorServicioChart) {
+                    window.ingresosPorServicioChart.destroy();
+                }
+                
+                // Generar colores diferentes para cada servicio
+                const colores = generarColores(datos.length);
+                
+                window.ingresosPorServicioChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: datos.map(item => item.nombre),
+                        datasets: [{
+                            data: datos.map(item => item.ingresos),
+                            backgroundColor: colores,
+                            hoverBackgroundColor: colores.map(color => aumentarBrillo(color, -10)),
+                            hoverBorderColor: "rgba(234, 236, 244, 1)",
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        if (label) {
+                                            const valor = context.raw || 0;
+                                            return `${label}: ${formatter.format(valor)}`;
+                                        }
+                                        return '';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Funciones auxiliares
+            const formatter = new Intl.NumberFormat('es-ES', {
+                style: 'currency',
+                currency: 'PEN',
+                minimumFractionDigits: 2
+            });
+            
+            // Función para generar colores
+            function generarColores(cantidad) {
+                const colores = [];
+                const baseHues = [210, 120, 45, 330, 270, 180, 0, 90, 300, 150];
+                
+                for (let i = 0; i < cantidad; i++) {
+                    // Usar colores base para los primeros elementos
+                    const hue = baseHues[i % baseHues.length];
+                    // Variar saturación y brillo según la posición
+                    const saturation = 70 + (i % 3) * 10;
+                    const lightness = 55 + (i % 2) * 10;
+                    
+                    colores.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
+                }
+                
+                return colores;
+            }
+            
+            // Función para ajustar el brillo de un color
+            function aumentarBrillo(color, ajuste) {
+                // Para colores HSL
+                if (color.includes('hsl')) {
+                    const matches = color.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+                    if (matches) {
+                        const h = parseInt(matches[1]);
+                        const s = parseInt(matches[2]);
+                        const l = Math.max(0, Math.min(100, parseInt(matches[3]) + ajuste));
+                        return `hsl(${h}, ${s}%, ${l}%)`;
+                    }
+                }
+                
+                // Para otros formatos de color, simplemente devolver el mismo
+                return color;
+            }
+        });
+    </script>
+</body>
+</html>

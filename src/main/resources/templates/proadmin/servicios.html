@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FELICITA - Servicios</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/proadmin.css}">
+</head>
+<body>
+    <!-- Incluir el menú lateral -->
+    <div th:replace="~{fragmentos/menu :: menu}"></div>
+    
+    <main class="content">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Servicios</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btnActualizar">
+                        <i class="fas fa-sync-alt me-1"></i> Actualizar
+                    </button>
+                </div>
+                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalSeleccionEstablecimiento">
+                    <i class="fas fa-plus me-1"></i> Nuevo Servicio
+                </button>
+            </div>
+        </div>
+        
+        <!-- Alertas -->
+        <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${mensaje}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- Filtros -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Filtros</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="filtroEstablecimiento" class="form-label">Establecimiento</label>
+                        <select class="form-select" id="filtroEstablecimiento">
+                            <option value="todos">Todos los establecimientos</option>
+                            <option th:each="establecimiento : ${establecimientos}" 
+                                    th:value="${establecimiento.id}" 
+                                    th:text="${establecimiento.nombre}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filtroCategoria" class="form-label">Categoría</label>
+                        <select class="form-select" id="filtroCategoria">
+                            <option value="todas">Todas las categorías</option>
+                            <option th:each="categoria : ${categorias}" 
+                                    th:value="${categoria}" 
+                                    th:text="${categoria}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filtroBusqueda" class="form-label">Búsqueda</label>
+                        <input type="text" class="form-control" id="filtroBusqueda" placeholder="Nombre, descripción...">
+                    </div>
+                </div>
+                <div class="text-end mt-3">
+                    <button class="btn btn-primary" id="btnAplicarFiltros">
+                        <i class="fas fa-filter me-1"></i> Aplicar Filtros
+                    </button>
+                    <button class="btn btn-outline-secondary" id="btnLimpiarFiltros">
+                        <i class="fas fa-times me-1"></i> Limpiar
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Listado de servicios por establecimiento -->
+        <div th:each="establecimiento : ${establecimientos}" class="card shadow mb-4 card-establecimiento">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary" th:text="${establecimiento.nombre}">Nombre del Establecimiento</h6>
+                <a th:href="@{/proadmin/establecimientos/{id}/servicios(id=${establecimiento.id})}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-cogs me-1"></i> Gestionar Servicios
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered tabla-servicios" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Duración (min)</th>
+                                <th>Precio (S/)</th>
+                                <th>Categoría</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="servicio : ${serviciosPorEstablecimiento.get(establecimiento.id)}">
+                                <td th:text="${servicio.nombre}">Corte de Cabello</td>
+                                <td th:text="${servicio.descripcion}">Descripción del servicio</td>
+                                <td th:text="${servicio.duracion}">30</td>
+                                <td th:text="${#numbers.formatDecimal(servicio.precio, 1, 2)}">25.00</td>
+                                <td th:text="${servicio.categoria}" th:attr="data-categoria=${servicio.categoria}">Cortes</td>
+                                <td>
+                                    <span th:if="${servicio.activo}" class="badge bg-success">Activo</span>
+                                    <span th:unless="${servicio.activo}" class="badge bg-danger">Inactivo</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/proadmin/establecimientos/{idEstablecimiento}/servicios(idEstablecimiento=${establecimiento.id})}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div th:if="${#lists.isEmpty(serviciosPorEstablecimiento.get(establecimiento.id))}" class="alert alert-info text-center">
+                    No hay servicios para este establecimiento.
+                    <a th:href="@{/proadmin/establecimientos/{id}/servicios(id=${establecimiento.id})}" class="alert-link">Agregar servicios</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal para seleccionar establecimiento -->
+        <div class="modal fade" id="modalSeleccionEstablecimiento" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Seleccionar Establecimiento</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Selecciona el establecimiento al que deseas agregar servicios:</p>
+                        
+                        <div class="list-group">
+                            <a th:each="establecimiento : ${establecimientos}" 
+                               th:href="@{/proadmin/establecimientos/{id}/servicios(id=${establecimiento.id})}" 
+                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1" th:text="${establecimiento.nombre}">Nombre del Establecimiento</h6>
+                                    <small th:text="${establecimiento.direccion}">Dirección</small>
+                                </div>
+                                <span th:if="${establecimiento.activo}" class="badge bg-success rounded-pill">Activo</span>
+                                <span th:unless="${establecimiento.activo}" class="badge bg-danger rounded-pill">Inactivo</span>
+                            </a>
+                        </div>
+                        
+                        <div th:if="${#lists.isEmpty(establecimientos)}" class="alert alert-warning mt-3">
+                            No tienes establecimientos registrados. Debes crear un establecimiento primero.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <a th:if="${#lists.isEmpty(establecimientos)}" th:href="@{/proadmin/establecimientos/nuevo}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> Crear Establecimiento
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/proadmin.js}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Funcionalidad para filtrar servicios
+            const btnAplicarFiltros = document.getElementById('btnAplicarFiltros');
+            const btnLimpiarFiltros = document.getElementById('btnLimpiarFiltros');
+            
+            btnAplicarFiltros.addEventListener('click', filtrarServicios);
+            btnLimpiarFiltros.addEventListener('click', limpiarFiltros);
+            
+            function filtrarServicios() {
+                const establecimientoId = document.getElementById('filtroEstablecimiento').value;
+                const categoria = document.getElementById('filtroCategoria').value;
+                const busqueda = document.getElementById('filtroBusqueda').value.toLowerCase();
+                
+                // Filtrar por establecimiento
+                const cardsEstablecimientos = document.querySelectorAll('.card-establecimiento');
+                cardsEstablecimientos.forEach(card => {
+                    const idEstablecimiento = card.querySelector('a[href*="/establecimientos/"]').getAttribute('href').split('/').slice(-2)[0];
+                    
+                    if (establecimientoId === 'todos' || establecimientoId === idEstablecimiento) {
+                        card.style.display = '';
+                        
+                        // Filtrar servicios dentro de este establecimiento
+                        const filas = card.querySelectorAll('tbody tr');
+                        let serviciosVisibles = 0;
+                        
+                        filas.forEach(fila => {
+                            const nombre = fila.cells[0].textContent.toLowerCase();
+                            const descripcion = fila.cells[1].textContent.toLowerCase();
+                            const categoriaServicio = fila.cells[4].getAttribute('data-categoria');
+                            
+                            const matchTexto = nombre.includes(busqueda) || descripcion.includes(busqueda);
+                            const matchCategoria = categoria === 'todas' || categoriaServicio === categoria;
+                            
+                            if (matchTexto && matchCategoria) {
+                                fila.style.display = '';
+                                serviciosVisibles++;
+                            } else {
+                                fila.style.display = 'none';
+                            }
+                        });
+                        
+                        // Mostrar/ocultar mensaje de "No hay servicios" si aplica
+                        const mensajeNoServicios = card.querySelector('.alert-info');
+                        if (mensajeNoServicios) {
+                            mensajeNoServicios.style.display = serviciosVisibles === 0 ? '' : 'none';
+                        }
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+            
+            function limpiarFiltros() {
+                document.getElementById('filtroEstablecimiento').value = 'todos';
+                document.getElementById('filtroCategoria').value = 'todas';
+                document.getElementById('filtroBusqueda').value = '';
+                
+                const cardsEstablecimientos = document.querySelectorAll('.card-establecimiento');
+                cardsEstablecimientos.forEach(card => {
+                    card.style.display = '';
+                    
+                    const filas = card.querySelectorAll('tbody tr');
+                    filas.forEach(fila => {
+                        fila.style.display = '';
+                    });
+                    
+                    const mensajeNoServicios = card.querySelector('.alert-info');
+                    if (mensajeNoServicios) {
+                        const hayServicios = card.querySelectorAll('tbody tr').length > 0;
+                        mensajeNoServicios.style.display = hayServicios ? 'none' : '';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

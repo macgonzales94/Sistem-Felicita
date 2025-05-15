@@ -1,10 +1,13 @@
 package com.felicita.controladores;
 
+import com.felicita.dto.JwtResponseDTO;
 import com.felicita.dto.LoginDTO;
 import com.felicita.dto.RegistroDTO;
 import com.felicita.excepciones.UsuarioExcepcion;
 import com.felicita.servicios.AutenticacionServicio;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -30,6 +33,44 @@ public class AutenticacionControladorThymeleaf {
         }
         model.addAttribute("loginDTO", new LoginDTO());
         return "auth/login";
+    }
+
+    @PostMapping("/login")
+    public String procesarLogin(@Valid @ModelAttribute("loginDTO") LoginDTO loginDTO,
+                               BindingResult result,
+                               RedirectAttributes redirectAttributes,
+                               HttpServletResponse response) {
+        
+        if (result.hasErrors()) {
+            return "auth/login";
+        }
+        
+        try {
+            // Obtener el token JWT
+            JwtResponseDTO respuesta = autenticacionServicio.autenticar(loginDTO);
+            
+            // Almacenar el token JWT en una cookie
+            Cookie jwtCookie = new Cookie("jwtToken", respuesta.getToken());
+            jwtCookie.setPath("/");
+            jwtCookie.setHttpOnly(true); // Para seguridad, no accesible via JavaScript
+            jwtCookie.setMaxAge(86400); // 1 día en segundos
+            response.addCookie(jwtCookie);
+            
+            // Redireccionar según el rol del usuario
+            if (respuesta.getRoles().contains("ADMINISTRADOR")) {
+                return "redirect:/admin/dashboard";
+            } else if (respuesta.getRoles().contains("PROADMIN")) {
+                return "redirect:/proadmin/dashboard";
+            } else if (respuesta.getRoles().contains("CLIENTE")) {
+                return "redirect:/cliente/inicio";
+            } else {
+                return "redirect:/";
+            }
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensajeError", "Credenciales incorrectas. Por favor intenta de nuevo.");
+            return "redirect:/login";
+        }
     }
 
     @GetMapping("/registro")
@@ -79,5 +120,19 @@ public class AutenticacionControladorThymeleaf {
         } else {
             return "redirect:/";
         }
+    }
+    
+    @GetMapping("/logout")
+    public String logout(HttpServletResponse response) {
+        // Eliminar la cookie JWT
+        Cookie cookie = new Cookie("jwtToken", null);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+        
+        // Limpiar el contexto de seguridad
+        SecurityContextHolder.clearContext();
+        
+        return "redirect:/login?logout";
     }
 }

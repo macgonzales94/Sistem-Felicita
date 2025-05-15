@@ -44,6 +44,8 @@ public class ConfiguracionSeguridad {
                 .requestMatchers("/css/**", "/js/**", "/img/**", "/favicon.ico").permitAll()
                 // Páginas públicas
                 .requestMatchers("/", "/index", "/registro", "/login", "/acerca", "/contacto").permitAll()
+                // Página de acceso denegado y logout
+                .requestMatchers("/acceso-denegado", "/logout").permitAll()
                 // API pública para el login y registro
                 .requestMatchers("/api/auth/**").permitAll()
                 // Rutas para administradores
@@ -56,9 +58,7 @@ public class ConfiguracionSeguridad {
                 .anyRequest().authenticated()
             );
             
-            
-            
-        // Agregar filtro JWT
+        // Agregar filtro JWT antes del filtro de autenticación de usuario/contraseña
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
@@ -74,4 +74,3 @@ public class ConfiguracionSeguridad {
         return authConfig.getAuthenticationManager();
     }
 }
-

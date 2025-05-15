@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FELICITA - Calendario ProAdmin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/proadmin.css}">
+</head>
+<body>
+    <!-- Incluir el menú lateral -->
+    <div th:replace="~{fragmentos/menu :: menu}"></div>
+    
+    <main class="content">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Calendario de Citas</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <button type="button" class="btn btn-sm btn-outline-primary" id="btnNuevaCita">
+                    <i class="fas fa-plus me-1"></i> Nueva Cita
+                </button>
+            </div>
+        </div>
+        
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <div id="calendario"></div>
+            </div>
+        </div>
+        
+        <!-- Modal para detalles de cita -->
+        <div class="modal fade" id="modalDetalleCita" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Detalle de Cita</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="detalleCita">
+                            <!-- Detalles de la cita seleccionada -->
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-primary" id="btnEditarCita">Editar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/locales-all.min.js"></script>
+    <script th:src="@{/js/proadmin.js}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendario');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'es',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                selectable: true,
+                editable: true,
+                events: '/proadmin/citas/api',
+                eventClick: function(info) {
+                    // Mostrar modal con detalles de la cita
+                    var modal = document.getElementById('modalDetalleCita');
+                    var bsModal = new bootstrap.Modal(modal);
+                    
+                    // Cargar detalles de la cita
+                    var detalleDiv = document.getElementById('detalleCita');
+                    detalleDiv.innerHTML = `
+                        <div class="mb-3">
+                            <strong>Cliente:</strong> ${info.event.extendedProps.nombreCliente || 'No disponible'}
+                        </div>
+                        <div class="mb-3">
+                            <strong>Servicio:</strong> ${info.event.title || 'No disponible'}
+                        </div>
+                        <div class="mb-3">
+                            <strong>Fecha y Hora:</strong> ${info.event.start ? info.event.start.toLocaleString() : 'No disponible'}
+                        </div>
+                        <div class="mb-3">
+                            <strong>Estado:</strong> <span class="badge ${getBadgeClass(info.event.extendedProps.estado)}">${info.event.extendedProps.estado || 'No disponible'}</span>
+                        </div>
+                    `;
+                    
+                    // Configurar el botón de editar para redirigir a la página de edición
+                    document.getElementById('btnEditarCita').onclick = function() {
+                        window.location.href = '/proadmin/citas/' + info.event.id;
+                    };
+                    
+                    bsModal.show();
+                }
+            });
+            calendar.render();
+            
+            // Función para obtener la clase del badge según el estado
+            function getBadgeClass(estado) {
+                switch(estado) {
+                    case 'PENDIENTE': return 'bg-warning';
+                    case 'CONFIRMADA': return 'bg-primary';
+                    case 'COMPLETADA': return 'bg-success';
+                    case 'CANCELADA': return 'bg-danger';
+                    case 'NO_ASISTIO': return 'bg-secondary';
+                    default: return 'bg-info';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FELICITA - Gestión de Establecimiento</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/proadmin.css}">
+</head>
+<body>
+    <!-- Incluir el menú lateral -->
+    <div th:replace="~{fragmentos/menu :: menu}"></div>
+    
+    <main class="content">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Gestión de Establecimiento</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <a th:href="@{/proadmin/establecimientos}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Volver
+                </a>
+            </div>
+        </div>
+        
+        <!-- Alertas -->
+        <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${mensaje}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- Formulario -->
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <!-- Formulario sin th:action - usaremos un valor fijo y lo ajustaremos con JavaScript -->
+                <form id="establecimientoForm" th:object="${establecimientoForm}" action="/proadmin/establecimientos/nuevo" method="post">
+                    <input type="hidden" id="idEstablecimiento" th:field="*{id}">
+                    
+                    <!-- Tipo de establecimiento -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Tipo de Establecimiento</label>
+                        <div class="d-flex">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="tipoBarberia" value="BARBERIA" th:field="*{tipoEstablecimiento}">
+                                <label class="form-check-label" for="tipoBarberia">Barbería</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="tipoSalonBelleza" value="SALON_BELLEZA" th:field="*{tipoEstablecimiento}">
+                                <label class="form-check-label" for="tipoSalonBelleza">Salón de Belleza</label>
+                            </div>
+                        </div>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('tipoEstablecimiento')}" th:errors="*{tipoEstablecimiento}"></div>
+                    </div>
+                    
+                    <!-- Información general -->
+                    <h5 class="border-bottom pb-2 mb-3">Información General</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="nombre" class="form-label">Nombre *</label>
+                            <input type="text" class="form-control" id="nombre" th:field="*{nombre}" required>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="telefono" class="form-label">Teléfono *</label>
+                            <input type="tel" class="form-control" id="telefono" th:field="*{telefono}" required>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('telefono')}" th:errors="*{telefono}"></div>
+                        </div>
+                        <div class="col-md-12">
+                            <label for="descripcion" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="descripcion" th:field="*{descripcion}" rows="3"></textarea>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('descripcion')}" th:errors="*{descripcion}"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Ubicación -->
+                    <h5 class="border-bottom pb-2 mb-3">Ubicación</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12">
+                            <label for="direccion" class="form-label">Dirección *</label>
+                            <input type="text" class="form-control" id="direccion" th:field="*{direccion}" required>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('direccion')}" th:errors="*{direccion}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ciudad" class="form-label">Ciudad *</label>
+                            <input type="text" class="form-control" id="ciudad" th:field="*{ciudad}" required>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('ciudad')}" th:errors="*{ciudad}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="codigoPostal" class="form-label">Código Postal</label>
+                            <input type="text" class="form-control" id="codigoPostal" th:field="*{codigoPostal}">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('codigoPostal')}" th:errors="*{codigoPostal}"></div>
+                        </div>
+                        <div class="col-md-12">
+                            <label for="referencias" class="form-label">Referencias o puntos cercanos</label>
+                            <input type="text" class="form-control" id="referencias" th:field="*{referencias}">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('referencias')}" th:errors="*{referencias}"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Horarios -->
+                    <h5 class="border-bottom pb-2 mb-3">Horarios de Atención</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="horaApertura" class="form-label">Hora de Apertura *</label>
+                            <input type="time" class="form-control" id="horaApertura" th:field="*{horaApertura}" required>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('horaApertura')}" th:errors="*{horaApertura}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="horaCierre" class="form-label">Hora de Cierre *</label>
+                            <input type="time" class="form-control" id="horaCierre" th:field="*{horaCierre}" required>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('horaCierre')}" th:errors="*{horaCierre}"></div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label">Días de Atención *</label>
+                            <div class="d-flex flex-wrap gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="lunesCheck" th:field="*{diasAtencion}" value="LUNES">
+                                    <label class="form-check-label" for="lunesCheck">Lunes</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="martesCheck" th:field="*{diasAtencion}" value="MARTES">
+                                    <label class="form-check-label" for="martesCheck">Martes</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="miercolesCheck" th:field="*{diasAtencion}" value="MIERCOLES">
+                                    <label class="form-check-label" for="miercolesCheck">Miércoles</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="juevesCheck" th:field="*{diasAtencion}" value="JUEVES">
+                                    <label class="form-check-label" for="juevesCheck">Jueves</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="viernesCheck" th:field="*{diasAtencion}" value="VIERNES">
+                                    <label class="form-check-label" for="viernesCheck">Viernes</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="sabadoCheck" th:field="*{diasAtencion}" value="SABADO">
+                                    <label class="form-check-label" for="sabadoCheck">Sábado</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="domingoCheck" th:field="*{diasAtencion}" value="DOMINGO">
+                                    <label class="form-check-label" for="domingoCheck">Domingo</label>
+                                </div>
+                            </div>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('diasAtencion')}" th:errors="*{diasAtencion}"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Configuración adicional -->
+                    <h5 class="border-bottom pb-2 mb-3">Configuración Adicional</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="duracionCitaDefecto" class="form-label">Duración de Cita por Defecto (minutos) *</label>
+                            <input type="number" class="form-control" id="duracionCitaDefecto" th:field="*{duracionCitaDefecto}" min="15" step="15" required>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('duracionCitaDefecto')}" th:errors="*{duracionCitaDefecto}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="intervalosCitas" class="form-label">Intervalos entre Citas (minutos) *</label>
+                            <input type="number" class="form-control" id="intervalosCitas" th:field="*{intervalosCitas}" min="0" step="5" required>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('intervalosCitas')}" th:errors="*{intervalosCitas}"></div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="activo" th:field="*{activo}">
+                                <label class="form-check-label" for="activo">Establecimiento Activo</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a th:href="@{/proadmin/establecimientos}" class="btn btn-secondary me-md-2">Cancelar</a>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/proadmin.js}"></script>
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Obtener el modo (crear o editar) desde Thymeleaf
+            const esModo = /*[[${esModo}]]*/ 'crear';
+            
+            // Si estamos en modo edición, ajustar la acción del formulario
+            if (esModo === 'editar') {
+                const form = document.getElementById('establecimientoForm');
+                const id = document.getElementById('idEstablecimiento').value;
+                
+                // Cambiar la acción del formulario y deshabilitar los radio buttons
+                form.action = `/proadmin/establecimientos/${id}/editar`;
+                
+                document.getElementById('tipoBarberia').disabled = true;
+                document.getElementById('tipoSalonBelleza').disabled = true;
+            }
+        });
+    </script>
+</body>
+</html>
