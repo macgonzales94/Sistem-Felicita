@@ -43,8 +43,9 @@
                 <div class="card shadow h-100">
                     <div class="card-header py-3 d-flex justify-content-between align-items-center">
                         <h6 class="m-0 font-weight-bold text-primary" th:text="${establecimiento.nombre}">Nombre del Establecimiento</h6>
-                        <span th:if="${establecimiento.activo}" class="badge bg-success">Activo</span>
-                        <span th:unless="${establecimiento.activo}" class="badge bg-danger">Inactivo</span>
+                        <span th:if="${establecimiento.estaActivo}" class="badge bg-success">Activo</span>
+                        <span th:unless="${establecimiento.estaActivo}" class="badge bg-danger">Inactivo</span>
+
                     </div>
                     <div class="card-body">
                         <div class="mb-3">

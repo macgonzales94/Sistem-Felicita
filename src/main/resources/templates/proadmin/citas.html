@@ -41,8 +41,10 @@
                     <div class="col-md-3 mb-3">
                         <label for="filtroEstablecimiento" class="form-label">Establecimiento</label>
                         <select class="form-select" id="filtroEstablecimiento">
-                            <option value="todos">Todos</option>
-                            <!-- Opciones generadas dinámicamente -->
+                            <option value="">Todos</option>
+                            <option th:each="establecimiento : ${establecimientos}" 
+                                    th:value="${establecimiento.id}" 
+                                    th:text="${establecimiento.nombre}"></option>
                         </select>
                     </div>
                     <div class="col-md-3 mb-3">
@@ -104,13 +106,6 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="mt-3">
-                    <nav aria-label="Paginación de citas">
-                        <ul class="pagination justify-content-center" id="paginacion">
-                            <!-- Elementos de paginación generados dinámicamente -->
-                        </ul>
-                    </nav>
-                </div>
             </div>
         </div>
     </main>
@@ -118,5 +113,146 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script th:src="@{/js/proadmin.js}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarCitas();
+            cargarEstadisticasHoy();
+            
+            // Event listeners
+            document.getElementById('btnActualizar').addEventListener('click', cargarCitas);
+            document.getElementById('btnAplicarFiltros').addEventListener('click', cargarCitas);
+            document.getElementById('btnLimpiarFiltros').addEventListener('click', limpiarFiltros);
+        });
+        
+        function cargarCitas() {
+            const establecimientoId = document.getElementById('filtroEstablecimiento').value;
+            const estado = document.getElementById('filtroEstado').value;
+            const fecha = document.getElementById('filtroFecha').value;
+            
+            let url = '/proadmin/citas/api?';
+            if (establecimientoId) url += `establecimientoId=${establecimientoId}&`;
+            if (estado !== 'todos') url += `estado=${estado}&`;
+            if (fecha) url += `fecha=${fecha}&`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(citas => {
+                    actualizarTablaCitas(citas);
+                    document.getElementById('totalCitas').textContent = citas.length;
+                })
+                .catch(error => console.error('Error cargando citas:', error));
+        }
+        
+        function actualizarTablaCitas(citas) {
+            const tbody = document.querySelector('#tablaCitas tbody');
+            tbody.innerHTML = '';
+            
+            if (citas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No se encontraron citas</td></tr>';
+                return;
+            }
+            
+            citas.forEach(cita => {
+                const tr = document.createElement('tr');
+                const fechaHora = new Date(cita.fechaHora);
+                const fechaFormateada = fechaHora.toLocaleDateString() + ' ' + fechaHora.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+                
+                tr.innerHTML = `
+                    <td>${cita.id}</td>
+                    <td>${cita.nombreCliente} ${cita.apellidoCliente}</td>
+                    <td>${cita.nombreEstablecimiento}</td>
+                    <td>${cita.nombreServicio}</td>
+                    <td>${fechaFormateada}</td>
+                    <td>${getEstadoBadge(cita.estado)}</td>
+                    <td>${getAccionesBotones(cita)}</td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+        
+        function getEstadoBadge(estado) {
+            const badges = {
+                'PENDIENTE': '<span class="badge bg-warning">Pendiente</span>',
+                'CONFIRMADA': '<span class="badge bg-primary">Confirmada</span>',
+                'COMPLETADA': '<span class="badge bg-success">Completada</span>',
+                'CANCELADA': '<span class="badge bg-danger">Cancelada</span>',
+                'NO_ASISTIO': '<span class="badge bg-secondary">No Asistió</span>'
+            };
+            return badges[estado] || estado;
+        }
+        
+        function getAccionesBotones(cita) {
+            let botones = '<div class="btn-group btn-group-sm">';
+            
+            if (cita.estado === 'PENDIENTE') {
+                botones += `<button class="btn btn-success" onclick="confirmarCita(${cita.id})" title="Confirmar"><i class="fas fa-check"></i></button>`;
+            }
+            
+            if (cita.estado === 'CONFIRMADA') {
+                botones += `<button class="btn btn-primary" onclick="completarCita(${cita.id})" title="Completar"><i class="fas fa-check-double"></i></button>`;
+                botones += `<button class="btn btn-warning" onclick="marcarNoAsistio(${cita.id})" title="No Asistió"><i class="fas fa-user-times"></i></button>`;
+            }
+            
+            if (cita.estado !== 'COMPLETADA' && cita.estado !== 'CANCELADA') {
+                botones += `<button class="btn btn-danger" onclick="cancelarCita(${cita.id})" title="Cancelar"><i class="fas fa-times"></i></button>`;
+            }
+            
+            botones += '</div>';
+            return botones;
+        }
+        
+        function confirmarCita(id) {
+            if (confirm('¿Confirmar esta cita?')) {
+                fetch(`/proadmin/citas/api/${id}/confirmar`, { method: 'POST' })
+                    .then(response => response.json())
+                    .then(() => cargarCitas())
+                    .catch(error => alert('Error al confirmar la cita'));
+            }
+        }
+        
+        function completarCita(id) {
+            if (confirm('¿Marcar esta cita como completada?')) {
+                fetch(`/proadmin/citas/api/${id}/completar`, { method: 'POST' })
+                    .then(response => response.json())
+                    .then(() => cargarCitas())
+                    .catch(error => alert('Error al completar la cita'));
+            }
+        }
+        
+        function cancelarCita(id) {
+            if (confirm('¿Cancelar esta cita?')) {
+                fetch(`/proadmin/citas/api/${id}/cancelar`, { method: 'POST' })
+                    .then(response => response.json())
+                    .then(() => cargarCitas())
+                    .catch(error => alert('Error al cancelar la cita'));
+            }
+        }
+        
+        function marcarNoAsistio(id) {
+            if (confirm('¿Marcar que el cliente no asistió?')) {
+                fetch(`/proadmin/citas/api/${id}/no-asistio`, { method: 'POST' })
+                    .then(response => response.json())
+                    .then(() => cargarCitas())
+                    .catch(error => alert('Error al marcar no asistencia'));
+            }
+        }
+        
+        function cargarEstadisticasHoy() {
+            fetch('/proadmin/citas/api/estadisticas/hoy')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('citasHoy').textContent = data.totalCitasHoy;
+                });
+        }
+        
+        function limpiarFiltros() {
+            document.getElementById('filtroEstablecimiento').value = '';
+            document.getElementById('filtroEstado').value = 'todos';
+            document.getElementById('filtroFecha').value = '';
+            document.getElementById('filtroBusqueda').value = '';
+            cargarCitas();
+        }
+    </script>
 </body>
 </html>

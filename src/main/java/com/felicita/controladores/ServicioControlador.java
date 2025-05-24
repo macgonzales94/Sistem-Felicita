@@ -29,7 +29,7 @@ public class ServicioControlador {
     @Autowired
     private ServicioServicio servicioServicio;
 
-    @GetMapping
+    @GetMapping("/listar")
     public String listarServicios(@RequestParam(required = false) Long establecimientoId,
                                  @RequestParam(defaultValue = "0") int page,
                                  @RequestParam(defaultValue = "10") int size,

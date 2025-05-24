@@ -16,61 +16,89 @@ import java.util.Set;
 @AllArgsConstructor
 public class EstablecimientoDTO {
     private Long id;
-    
+
     @NotBlank(message = "El nombre es obligatorio")
     @Size(max = 100, message = "El nombre no puede exceder los 100 caracteres")
     private String nombre;
-    
+
     @Size(max = 500, message = "La descripción no puede exceder los 500 caracteres")
     private String descripcion;
-    
+
     @NotBlank(message = "La dirección es obligatoria")
     @Size(max = 200, message = "La dirección no puede exceder los 200 caracteres")
     private String direccion;
-    
+
     @NotBlank(message = "La ciudad es obligatoria")
     @Size(max = 100, message = "La ciudad no puede exceder los 100 caracteres")
     private String ciudad;
-    
+
     @Size(max = 10, message = "El código postal no puede exceder los 10 caracteres")
     private String codigoPostal;
-    
+
     @Size(max = 20, message = "El teléfono no puede exceder los 20 caracteres")
     private String telefono;
-    
+
     @Email(message = "El email debe tener un formato válido")
     @Size(max = 100, message = "El email no puede exceder los 100 caracteres")
     private String email;
-    
+
     @Size(max = 200, message = "El sitio web no puede exceder los 200 caracteres")
     private String sitioWeb;
-    
+
     @Size(max = 300, message = "Los horarios de atención no pueden exceder los 300 caracteres")
     private String horariosAtencion;
-    
+
     private String imagenUrl;
-    
+
     private LocalDateTime fechaRegistro;
     private LocalDateTime fechaActualizacion;
     private boolean estaActivo;
-    
+
     private Long proAdminId;
-    
+
     private Set<String> caracteristicas = new HashSet<>();
-    
+
     // Campos específicos para definir el tipo de establecimiento
     private String tipoEstablecimiento; // "BARBERIA" o "SALON_BELLEZA"
-    
+
+    // NUEVOS CAMPOS AGREGADOS
+    @NotBlank(message = "La hora de apertura es obligatoria")
+    private String horaApertura;
+
+    @NotBlank(message = "La hora de cierre es obligatoria")
+    private String horaCierre;
+
+    private Set<String> diasAtencion = new HashSet<>();
+
+    private Integer duracionCitaDefecto = 30;
+
+    private Integer intervalosCitas = 15;
+
+    @Size(max = 300, message = "Las referencias no pueden exceder los 300 caracteres")
+    private String referencias;
+
     // Campos específicos para Barbería
     private String especialidadCortes;
     private boolean tieneServiciosBarba;
     private boolean tieneServiciosFaciales;
     private String estiloBarberia;
     private Integer aforoMaximo;
-    
+
     // Campos específicos para Salón de Belleza
     private String especialidad;
     private boolean tieneServiciosMaquillaje;
     private boolean tieneServiciosUnas;
     private boolean tieneTratamientosCapilares;
+
+    // Método getter adicional para mantener compatibilidad con la plantilla
+    // Thymeleaf
+    public boolean isActivo() {
+        return estaActivo;
+    }
+
+    // Método setter adicional para mantener compatibilidad con la plantilla
+    // Thymeleaf
+    public void setActivo(boolean activo) {
+        this.estaActivo = activo;
+    }
 }

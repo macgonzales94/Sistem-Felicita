@@ -5,7 +5,7 @@ import com.felicita.dto.ProAdminDTO;
 import com.felicita.entidades.ProAdmin;
 import com.felicita.entidades.Usuario;
 
-import java.util.Optional;
+import java.util.*;
 
 public interface ProAdminServicio {
     ProAdminDTO buscarPorId(Long id);
@@ -24,4 +24,7 @@ public interface ProAdminServicio {
     
     // Obtener estadísticas para el dashboard
     EstadisticasDTO obtenerEstadisticas();
+    
+    // NUEVO: Obtener estadísticas específicas de un establecimiento
+    EstadisticasDTO obtenerEstadisticasEstablecimiento(Long establecimientoId);
 }
