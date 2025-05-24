@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <div th:replace="~{fragmentos/cabecera :: head('Establecimientos')}"></div>
+</head>
+<body>
+    <!-- Navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/cliente/inicio}">
+                <i class="fas fa-cut me-2"></i>FELICITA
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/cliente/inicio}">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/cliente/establecimientos}">Establecimientos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/cliente/citas}">Mis Citas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/cliente/giftcards}">Gift Cards</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i>Mi Cuenta
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" th:href="@{/cliente/perfil}">Mi Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" th:href="@{/logout}">Cerrar Sesión</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section bg-primary text-white py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center">
+                    <h1 class="display-4 mb-3">Encuentra tu Establecimiento Ideal</h1>
+                    <p class="lead mb-4">Descubre los mejores salones de belleza y barberías cerca de ti</p>
+                    
+                    <!-- Buscador -->
+                    <div class="card">
+                        <div class="card-body">
+                            <form method="get" th:action="@{/cliente/establecimientos}">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" name="busqueda" 
+                                               th:value="${busqueda}" placeholder="Buscar por nombre...">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" class="form-control" name="ciudad" 
+                                               th:value="${ciudad}" placeholder="Ciudad...">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select class="form-select" name="tipo">
+                                            <option value="">Todos los tipos</option>
+                                            <option value="BARBERIA" th:selected="${tipo == 'BARBERIA'}">Barberías</option>
+                                            <option value="SALON_BELLEZA" th:selected="${tipo == 'SALON_BELLEZA'}">Salones de Belleza</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="submit" class="btn btn-success w-100">
+                                            <i class="fas fa-search me-1"></i>Buscar
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contenido Principal -->
+    <div class="container my-5">
+        <div class="row">
+            <!-- Sidebar con filtros y destacados -->
+            <div class="col-lg-3">
+                <!-- Filtros rápidos -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Filtros Rápidos</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/cliente/establecimientos(tipo='BARBERIA')}" 
+                               class="btn btn-outline-primary">
+                                <i class="fas fa-cut me-2"></i>Barberías
+                            </a>
+                            <a th:href="@{/cliente/establecimientos(tipo='SALON_BELLEZA')}" 
+                               class="btn btn-outline-info">
+                                <i class="fas fa-spa me-2"></i>Salones de Belleza
+                            </a>
+                            <a th:href="@{/cliente/establecimientos}" 
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-list me-2"></i>Ver Todos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mejor Calificados -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Mejor Calificados</h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:each="destacado : ${mejorCalificados}" class="d-flex align-items-center mb-3">
+                            <div class="flex-shrink-0">
+                                <img th:src="${destacado.imagenUrl ?: '/img/establecimiento-default.jpg'}" 
+                                     alt="Establecimiento" class="rounded" width="50" height="50">
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-0">
+                                    <a th:href="@{/cliente/establecimientos/{id}(id=${destacado.id})}" 
+                                       class="text-decoration-none" th:text="${destacado.nombre}">Nombre</a>
+                                </h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-star text-warning"></i>
+                                    <span th:text="${#numbers.formatDecimal(destacado.calificacionPromedio, 1, 1)}">4.5</span>
+                                    (<span th:text="${destacado.cantidadResenas}">25</span>)
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Establecimientos -->
+            <div class="col-lg-9">
+                <!-- Resultado de búsqueda -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <span th:if="${busqueda}">Resultados para: "<span th:text="${busqueda}"></span>"</span>
+                        <span th:if="${ciudad and not busqueda}">Establecimientos en <span th:text="${ciudad}"></span></span>
+                        <span th:if="${tipo and not busqueda and not ciudad}">
+                            <span th:text="${tipo == 'BARBERIA' ? 'Barberías' : 'Salones de Belleza'}"></span>
+                        </span>
+                        <span th:if="${not busqueda and not ciudad and not tipo}">Todos los Establecimientos</span>
+                    </h2>
+                    <span class="badge bg-primary" th:text="${#lists.size(establecimientos)} + ' encontrados'">
+                        0 encontrados
+                    </span>
+                </div>
+
+                <!-- Grid de Establecimientos -->
+                <div class="row" th:if="${not #lists.isEmpty(establecimientos)}">
+                    <div class="col-md-6 col-xl-4 mb-4" th:each="establecimiento : ${establecimientos}">
+                        <div class="card h-100 shadow-sm establishment-card">
+                            <div class="position-relative">
+                                <img th:src="${establecimiento.imagenUrl ?: '/img/establecimiento-default.jpg'}" 
+                                     class="card-img-top" alt="Establecimiento" style="height: 200px; object-fit: cover;">
+                                
+                                <!-- Badge de estado -->
+                                <span th:if="${establecimiento.abierto}" 
+                                      class="position-absolute top-0 end-0 m-2 badge bg-success">
+                                    <i class="fas fa-clock me-1"></i>Abierto
+                                </span>
+                                <span th:unless="${establecimiento.abierto}" 
+                                      class="position-absolute top-0 end-0 m-2 badge bg-danger">
+                                    <i class="fas fa-clock me-1"></i>Cerrado
+                                </span>
+                                
+                                <!-- Badge de tipo -->
+                                <span class="position-absolute top-0 start-0 m-2 badge bg-primary">
+                                    <i th:class="${establecimiento.tipo == 'BARBERIA' ? 'fas fa-cut' : 'fas fa-spa'} me-1"></i>
+                                    <span th:text="${establecimiento.tipo == 'BARBERIA' ? 'Barbería' : 'Salón'}"></span>
+                                </span>
+                            </div>
+                            
+                            <div class="card-body">
+                                <h5 class="card-title" th:text="${establecimiento.nombre}">Nombre del Establecimiento</h5>
+                                <p class="card-text text-muted" th:text="${establecimiento.descripcion}">
+                                    Descripción del establecimiento...
+                                </p>
+                                
+                                <!-- Información básica -->
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                        <span th:text="${establecimiento.direccion}">Dirección</span>
+                                    </small>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-phone me-1"></i>
+                                        <span th:text="${establecimiento.telefono}">Teléfono</span>
+                                    </small>
+                                </div>
+                                
+                                <!-- Calificación -->
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <span class="text-warning">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                        </span>
+                                        <small class="text-muted">
+                                            (<span th:text="${establecimiento.cantidadResenas}">25</span> reseñas)
+                                        </small>
+                                    </div>
+                                    <span class="badge bg-success" 
+                                          th:text="${#numbers.formatDecimal(establecimiento.calificacionPromedio, 1, 1)}">
+                                        4.5
+                                    </span>
+                                </div>
+                                
+                                <!-- Servicios destacados -->
+                                <div class="mb-3" th:if="${not #lists.isEmpty(establecimiento.serviciosDestacados)}">
+                                    <small class="text-muted d-block mb-1">Servicios destacados:</small>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <span th:each="servicio, iterStat : ${establecimiento.serviciosDestacados}"
+                                              th:if="${iterStat.index < 3}"
+                                              class="badge bg-light text-dark" 
+                                              th:text="${servicio.nombre}">Servicio</span>
+                                        <span th:if="${#lists.size(establecimiento.serviciosDestacados) > 3}"
+                                              class="badge bg-light text-dark">
+                                            +<span th:text="${#lists.size(establecimiento.serviciosDestacados) - 3}">2</span> más
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-footer bg-transparent">
+                                <div class="d-grid gap-2 d-md-flex">
+                                    <a th:href="@{/cliente/establecimientos/{id}(id=${establecimiento.id})}" 
+                                       class="btn btn-outline-primary flex-fill">
+                                        <i class="fas fa-eye me-1"></i>Ver Detalles
+                                    </a>
+                                    <a th:href="@{/cliente/citas/reservar(establecimientoId=${establecimiento.id})}" 
+                                       class="btn btn-primary flex-fill">
+                                        <i class="fas fa-calendar-plus me-1"></i>Reservar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mensaje cuando no hay resultados -->
+                <div class="text-center py-5" th:if="${#lists.isEmpty(establecimientos)}">
+                    <div class="display-1 text-muted mb-3">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>No se encontraron establecimientos</h3>
+                    <p class="text-muted">Intenta ajustar tus criterios de búsqueda</p>
+                    <a th:href="@{/cliente/establecimientos}" class="btn btn-primary">
+                        <i class="fas fa-list me-1"></i>Ver Todos
+                    </a>
+                </div>
+
+                <!-- Paginación -->
+                <nav th:if="${totalPages != null and totalPages > 1}" aria-label="Navegación de páginas">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/cliente/establecimientos(page=${currentPage - 1}, ciudad=${ciudad}, tipo=${tipo}, busqueda=${busqueda})}">
+                                Anterior
+                            </a>
+                        </li>
+                        
+                        <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" 
+                            class="page-item" th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link" th:href="@{/cliente/establecimientos(page=${i}, ciudad=${ciudad}, tipo=${tipo}, busqueda=${busqueda})}" 
+                               th:text="${i + 1}">1</a>
+                        </li>
+                        
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{/cliente/establecimientos(page=${currentPage + 1}, ciudad=${ciudad}, tipo=${tipo}, busqueda=${busqueda})}">
+                                Siguiente
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div th:replace="~{fragmentos/pie :: footer}"></div>
+
+    <!-- CSS adicional -->
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        }
+        
+        .establishment-card {
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .establishment-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .badge {
+            font-size: 0.75em;
+        }
+    </style>
+</body>
+</html>

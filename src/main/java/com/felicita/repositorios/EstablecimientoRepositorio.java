@@ -37,4 +37,27 @@ public interface EstablecimientoRepositorio extends JpaRepository<Establecimient
 
     @Query("SELECT e.id FROM Establecimiento e WHERE e.proAdmin.id = :proAdminId")
     List<Long> findIdsByProAdminId(@Param("proAdminId") Long proAdminId);
+
+    /**
+     * Buscar establecimientos activos
+     */
+    @Query("SELECT e FROM Establecimiento e WHERE e.estaActivo = true ORDER BY e.nombre")
+    List<Establecimiento> findEstablecimientosActivos();
+
+    /**
+     * Buscar establecimientos por filtros múltiples
+     */
+    @Query("SELECT e FROM Establecimiento e WHERE e.estaActivo = true " +
+            "AND (:ciudad IS NULL OR LOWER(e.ciudad) LIKE LOWER(CONCAT('%', :ciudad, '%'))) " +
+            "AND (:nombre IS NULL OR LOWER(e.nombre) LIKE LOWER(CONCAT('%', :nombre, '%')))")
+    List<Establecimiento> findByFiltros(
+            @Param("ciudad") String ciudad,
+            @Param("nombre") String nombre);
+
+    /**
+     * Contar establecimientos activos por ciudad
+     */
+    @Query("SELECT COUNT(e) FROM Establecimiento e WHERE e.estaActivo = true AND LOWER(e.ciudad) = LOWER(:ciudad)")
+    long countEstablecimientosActivosByCiudad(@Param("ciudad") String ciudad);
+
 }
