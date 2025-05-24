@@ -52,7 +52,7 @@ public class EstablecimientoDTO {
 
     private LocalDateTime fechaRegistro;
     private LocalDateTime fechaActualizacion;
-    private boolean estaActivo;
+    private boolean estaActivo = true; // Campo principal
 
     private Long proAdminId;
 
@@ -90,14 +90,15 @@ public class EstablecimientoDTO {
     private boolean tieneServiciosUnas;
     private boolean tieneTratamientosCapilares;
 
-    // Método getter adicional para mantener compatibilidad con la plantilla
-    // Thymeleaf
-    public boolean isActivo() {
+    // MÉTODOS CORREGIDOS PARA COMPATIBILIDAD CON THYMELEAF
+    // Eliminar los métodos conflictivos isActivo() y setActivo()
+    // Thymeleaf usará directamente estaActivo
+    
+    // Si necesitas compatibilidad adicional, usa métodos con nombres diferentes:
+    public boolean getActivo() {
         return estaActivo;
     }
-
-    // Método setter adicional para mantener compatibilidad con la plantilla
-    // Thymeleaf
+    
     public void setActivo(boolean activo) {
         this.estaActivo = activo;
     }

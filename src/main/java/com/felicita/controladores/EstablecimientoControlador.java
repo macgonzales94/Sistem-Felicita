@@ -39,9 +39,38 @@ public class EstablecimientoControlador {
 
     @GetMapping
     public String listarEstablecimientos(Model model) {
-        List<EstablecimientoDTO> establecimientos = establecimientoServicio.obtenerEstablecimientosProAdmin();
-        model.addAttribute("establecimientos", establecimientos);
-        return "proadmin/establecimientos";
+        try {
+            List<EstablecimientoDTO> establecimientos = establecimientoServicio.obtenerEstablecimientosProAdmin();
+            model.addAttribute("establecimientos", establecimientos);
+
+            // Agregar estadísticas si hay establecimientos
+            if (!establecimientos.isEmpty()) {
+                try {
+                    EstadisticasDTO estadisticas = proAdminServicio.obtenerEstadisticas();
+                    model.addAttribute("estadisticas", estadisticas);
+                } catch (Exception e) {
+                    System.err.println("Error obteniendo estadísticas: " + e.getMessage());
+                    // Crear estadísticas vacías como fallback
+                    EstadisticasDTO estadisticasVacias = new EstadisticasDTO();
+                    estadisticasVacias.setTotalEstablecimientos(establecimientos.size());
+                    model.addAttribute("estadisticas", estadisticasVacias);
+                }
+            } else {
+                // Crear estadísticas vacías si no hay establecimientos
+                EstadisticasDTO estadisticasVacias = new EstadisticasDTO();
+                model.addAttribute("estadisticas", estadisticasVacias);
+            }
+
+            return "proadmin/establecimientos";
+
+        } catch (Exception e) {
+            System.err.println("Error en listarEstablecimientos: " + e.getMessage());
+            e.printStackTrace();
+            model.addAttribute("error", "Error al cargar los establecimientos: " + e.getMessage());
+            model.addAttribute("establecimientos", new ArrayList<>());
+            model.addAttribute("estadisticas", new EstadisticasDTO());
+            return "proadmin/establecimientos";
+        }
     }
 
     @GetMapping("/{id}")

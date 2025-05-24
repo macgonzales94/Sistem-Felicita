@@ -8,6 +8,8 @@ import com.felicita.excepciones.RecursoNoEncontradoExcepcion;
 import com.felicita.servicios.EstablecimientoServicio;
 import com.felicita.servicios.ProAdminServicio;
 import com.felicita.servicios.ServicioServicio;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,11 +19,12 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set; 
+import java.util.Set;
 
 @Controller
 @RequestMapping("/proadmin")
@@ -29,10 +32,10 @@ public class ProAdminControlador {
 
     @Autowired
     private ProAdminServicio proAdminServicio;
-    
+
     @Autowired
     private EstablecimientoServicio establecimientoServicio;
-    
+
     @Autowired
     private ServicioServicio servicioServicio;
 
@@ -55,25 +58,24 @@ public class ProAdminControlador {
         }
     }
 
-    // CORREGIDO: Ahora recibe el ID del establecimiento
     @GetMapping("/establecimiento/{id}")
     public String perfilEstablecimiento(@PathVariable Long id, Model model) {
         try {
             EstablecimientoDTO establecimiento = establecimientoServicio.obtenerEstablecimientoPorId(id);
             List<ServicioDTO> serviciosDestacados = servicioServicio.obtenerServiciosPorEstablecimiento(id);
-            
+
             // Limitar a 5 servicios destacados
             if (serviciosDestacados.size() > 5) {
                 serviciosDestacados = serviciosDestacados.subList(0, 5);
             }
-            
+
             // Obtener estadísticas específicas del establecimiento
             EstadisticasDTO estadisticas = proAdminServicio.obtenerEstadisticasEstablecimiento(id);
-            
+
             model.addAttribute("establecimiento", establecimiento);
             model.addAttribute("serviciosDestacados", serviciosDestacados);
             model.addAttribute("estadisticas", estadisticas);
-            
+
             return "proadmin/perfil-establecimiento";
         } catch (RecursoNoEncontradoExcepcion e) {
             return "redirect:/error/404";
@@ -85,17 +87,17 @@ public class ProAdminControlador {
     public String servicios(Model model) {
         try {
             List<EstablecimientoDTO> establecimientos = establecimientoServicio.obtenerEstablecimientosProAdmin();
-            
+
             // Crear un mapa de servicios por establecimiento
             Map<Long, List<ServicioDTO>> serviciosPorEstablecimiento = new HashMap<>();
             for (EstablecimientoDTO est : establecimientos) {
                 List<ServicioDTO> servicios = servicioServicio.obtenerServiciosPorEstablecimiento(est.getId());
                 serviciosPorEstablecimiento.put(est.getId(), servicios);
             }
-            
+
             model.addAttribute("establecimientos", establecimientos);
             model.addAttribute("serviciosPorEstablecimiento", serviciosPorEstablecimiento);
-            
+
             // Obtener categorías únicas
             Set<String> categorias = new HashSet<>();
             categorias.add("Cortes");
@@ -105,7 +107,7 @@ public class ProAdminControlador {
             categorias.add("Peinados");
             categorias.add("Otros");
             model.addAttribute("categorias", categorias);
-            
+
             return "proadmin/servicios";
         } catch (RecursoNoEncontradoExcepcion e) {
             return "redirect:/error/404";
@@ -117,10 +119,10 @@ public class ProAdminControlador {
         try {
             ProAdminDTO proAdmin = proAdminServicio.obtenerProAdminAutenticado();
             List<EstablecimientoDTO> establecimientos = establecimientoServicio.obtenerEstablecimientosProAdmin();
-            
+
             model.addAttribute("proAdmin", proAdmin);
             model.addAttribute("establecimientos", establecimientos);
-            
+
             return "proadmin/citas";
         } catch (RecursoNoEncontradoExcepcion e) {
             return "redirect:/error/404";
@@ -165,8 +167,8 @@ public class ProAdminControlador {
 
     @PostMapping("/perfil")
     public String actualizarPerfil(@Valid @ModelAttribute("perfilForm") ProAdminDTO proAdminDTO,
-                                   BindingResult result,
-                                   RedirectAttributes redirectAttributes) {
+            BindingResult result,
+            RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             return "proadmin/perfil";
         }
@@ -201,5 +203,23 @@ public class ProAdminControlador {
     public ResponseEntity<ProAdminDTO> actualizarPerfilApi(@Valid @RequestBody ProAdminDTO proAdminDTO) {
         ProAdminDTO proAdminActualizado = proAdminServicio.actualizarProAdmin(proAdminDTO.getId(), proAdminDTO);
         return ResponseEntity.ok(proAdminActualizado);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public String handleException(Exception e, Model model, HttpServletRequest request) {
+        System.err.println("Error en ProAdminControlador: " + e.getMessage());
+        e.printStackTrace();
+
+        model.addAttribute("error", "Ha ocurrido un error: " + e.getMessage());
+
+        // Dependiendo de la URL, redirigir a la página apropiada
+        String requestURI = request.getRequestURI();
+        if (requestURI.contains("/establecimientos")) {
+            model.addAttribute("establecimientos", new ArrayList<>());
+            model.addAttribute("estadisticas", new EstadisticasDTO());
+            return "proadmin/establecimientos";
+        }
+
+        return "redirect:/proadmin/dashboard";
     }
 }

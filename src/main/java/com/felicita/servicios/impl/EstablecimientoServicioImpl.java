@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -35,13 +36,13 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
 
     @Autowired
     private EstablecimientoRepositorio establecimientoRepositorio;
-    
+
     @Autowired
     private BarberiaRepositorio barberiaRepositorio;
-    
+
     @Autowired
     private SalonBellezaRepositorio salonBellezaRepositorio;
-    
+
     @Autowired
     private ProAdminServicio proAdminServicio;
 
@@ -51,7 +52,7 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
         if (establecimientoDTO.getTipoEstablecimiento() == null) {
             throw new EstablecimientoExcepcion("El tipo de establecimiento es obligatorio");
         }
-        
+
         if ("BARBERIA".equals(establecimientoDTO.getTipoEstablecimiento())) {
             return crearBarberia(establecimientoDTO);
         } else if ("SALON_BELLEZA".equals(establecimientoDTO.getTipoEstablecimiento())) {
@@ -65,7 +66,7 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
     @Transactional
     public EstablecimientoDTO crearBarberia(EstablecimientoDTO barberiaDTO) {
         ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
-        
+
         Barberia barberia = new Barberia();
         barberia.setNombre(barberiaDTO.getNombre());
         barberia.setDescripcion(barberiaDTO.getDescripcion());
@@ -79,19 +80,19 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
         barberia.setImagenUrl(barberiaDTO.getImagenUrl());
         barberia.setEstaActivo(true);
         barberia.setProAdmin(proAdmin);
-        
+
         // Campos específicos de Barbería
         barberia.setEspecialidadCortes(barberiaDTO.getEspecialidadCortes());
         barberia.setTieneServiciosBarba(barberiaDTO.isTieneServiciosBarba());
         barberia.setTieneServiciosFaciales(barberiaDTO.isTieneServiciosFaciales());
         barberia.setEstiloBarberia(barberiaDTO.getEstiloBarberia());
         barberia.setAforoMaximo(barberiaDTO.getAforoMaximo());
-        
+
         // Agregar características
         if (barberiaDTO.getCaracteristicas() != null) {
             barberia.setCaracteristicas(barberiaDTO.getCaracteristicas());
         }
-        
+
         Barberia guardada = barberiaRepositorio.save(barberia);
         return convertirADTO(guardada);
     }
@@ -100,7 +101,7 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
     @Transactional
     public EstablecimientoDTO crearSalonBelleza(EstablecimientoDTO salonDTO) {
         ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
-        
+
         SalonBelleza salon = new SalonBelleza();
         salon.setNombre(salonDTO.getNombre());
         salon.setDescripcion(salonDTO.getDescripcion());
@@ -114,19 +115,19 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
         salon.setImagenUrl(salonDTO.getImagenUrl());
         salon.setEstaActivo(true);
         salon.setProAdmin(proAdmin);
-        
+
         // Campos específicos de Salón de Belleza
         salon.setEspecialidad(salonDTO.getEspecialidad());
         salon.setTieneServiciosMaquillaje(salonDTO.isTieneServiciosMaquillaje());
         salon.setTieneServiciosUnas(salonDTO.isTieneServiciosUnas());
         salon.setTieneTratamientosCapilares(salonDTO.isTieneTratamientosCapilares());
         salon.setAforoMaximo(salonDTO.getAforoMaximo());
-        
+
         // Agregar características
         if (salonDTO.getCaracteristicas() != null) {
             salon.setCaracteristicas(salonDTO.getCaracteristicas());
         }
-        
+
         SalonBelleza guardado = salonBellezaRepositorio.save(salon);
         return convertirADTO(guardado);
     }
@@ -136,13 +137,13 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
     public EstablecimientoDTO obtenerEstablecimientoPorId(Long id) {
         Establecimiento establecimiento = establecimientoRepositorio.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoExcepcion("Establecimiento no encontrado con ID: " + id));
-        
+
         // Verificar que el establecimiento pertenece al proAdmin autenticado
         ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
         if (!establecimiento.getProAdmin().getId().equals(proAdmin.getId())) {
             throw new EstablecimientoExcepcion("No tienes permiso para acceder a este establecimiento");
         }
-        
+
         return convertirADTO(establecimiento);
     }
 
@@ -151,7 +152,7 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
     public List<EstablecimientoDTO> obtenerEstablecimientosProAdmin() {
         ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
         List<Establecimiento> establecimientos = establecimientoRepositorio.findByProAdmin(proAdmin);
-        
+
         return establecimientos.stream()
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
@@ -162,13 +163,13 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
     public EstablecimientoDTO actualizarEstablecimiento(Long id, EstablecimientoDTO establecimientoDTO) {
         Establecimiento establecimiento = establecimientoRepositorio.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoExcepcion("Establecimiento no encontrado con ID: " + id));
-        
+
         // Verificar que el establecimiento pertenece al proAdmin autenticado
         ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
         if (!establecimiento.getProAdmin().getId().equals(proAdmin.getId())) {
             throw new EstablecimientoExcepcion("No tienes permiso para modificar este establecimiento");
         }
-        
+
         // Determinar qué tipo de establecimiento es para actualizar
         if (establecimiento instanceof Barberia) {
             return actualizarBarberia(id, establecimientoDTO);
@@ -184,13 +185,13 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
     public EstablecimientoDTO actualizarBarberia(Long id, EstablecimientoDTO barberiaDTO) {
         Barberia barberia = barberiaRepositorio.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoExcepcion("Barbería no encontrada con ID: " + id));
-        
+
         // Verificar que la barbería pertenece al proAdmin autenticado
         ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
         if (!barberia.getProAdmin().getId().equals(proAdmin.getId())) {
             throw new EstablecimientoExcepcion("No tienes permiso para modificar esta barbería");
         }
-        
+
         // Actualizar campos generales
         barberia.setNombre(barberiaDTO.getNombre());
         barberia.setDescripcion(barberiaDTO.getDescripcion());
@@ -202,14 +203,14 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
         barberia.setSitioWeb(barberiaDTO.getSitioWeb());
         barberia.setHorariosAtencion(barberiaDTO.getHorariosAtencion());
         barberia.setEstaActivo(barberiaDTO.isEstaActivo());
-        
+
         // Actualizar campos específicos de Barbería
         barberia.setEspecialidadCortes(barberiaDTO.getEspecialidadCortes());
         barberia.setTieneServiciosBarba(barberiaDTO.isTieneServiciosBarba());
         barberia.setTieneServiciosFaciales(barberiaDTO.isTieneServiciosFaciales());
         barberia.setEstiloBarberia(barberiaDTO.getEstiloBarberia());
         barberia.setAforoMaximo(barberiaDTO.getAforoMaximo());
-        
+
         Barberia actualizada = barberiaRepositorio.save(barberia);
         return convertirADTO(actualizada);
     }
@@ -219,13 +220,13 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
     public EstablecimientoDTO actualizarSalonBelleza(Long id, EstablecimientoDTO salonDTO) {
         SalonBelleza salon = salonBellezaRepositorio.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoExcepcion("Salón de belleza no encontrado con ID: " + id));
-        
+
         // Verificar que el salón pertenece al proAdmin autenticado
         ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
         if (!salon.getProAdmin().getId().equals(proAdmin.getId())) {
             throw new EstablecimientoExcepcion("No tienes permiso para modificar este salón de belleza");
         }
-        
+
         // Actualizar campos generales
         salon.setNombre(salonDTO.getNombre());
         salon.setDescripcion(salonDTO.getDescripcion());
@@ -237,14 +238,14 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
         salon.setSitioWeb(salonDTO.getSitioWeb());
         salon.setHorariosAtencion(salonDTO.getHorariosAtencion());
         salon.setEstaActivo(salonDTO.isEstaActivo());
-        
+
         // Actualizar campos específicos de Salón de Belleza
         salon.setEspecialidad(salonDTO.getEspecialidad());
         salon.setTieneServiciosMaquillaje(salonDTO.isTieneServiciosMaquillaje());
         salon.setTieneServiciosUnas(salonDTO.isTieneServiciosUnas());
         salon.setTieneTratamientosCapilares(salonDTO.isTieneTratamientosCapilares());
         salon.setAforoMaximo(salonDTO.getAforoMaximo());
-        
+
         SalonBelleza actualizado = salonBellezaRepositorio.save(salon);
         return convertirADTO(actualizado);
     }
@@ -254,13 +255,13 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
     public void eliminarEstablecimiento(Long id) {
         Establecimiento establecimiento = establecimientoRepositorio.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoExcepcion("Establecimiento no encontrado con ID: " + id));
-        
+
         // Verificar que el establecimiento pertenece al proAdmin autenticado
         ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
         if (!establecimiento.getProAdmin().getId().equals(proAdmin.getId())) {
             throw new EstablecimientoExcepcion("No tienes permiso para eliminar este establecimiento");
         }
-        
+
         // Por seguridad, en lugar de eliminar, marcar como inactivo
         establecimiento.setEstaActivo(false);
         establecimientoRepositorio.save(establecimiento);
@@ -277,34 +278,34 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
     public String subirImagenEstablecimiento(Long id, MultipartFile imagen) {
         Establecimiento establecimiento = establecimientoRepositorio.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoExcepcion("Establecimiento no encontrado con ID: " + id));
-        
+
         // Verificar que el establecimiento pertenece al proAdmin autenticado
         ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
         if (!establecimiento.getProAdmin().getId().equals(proAdmin.getId())) {
             throw new EstablecimientoExcepcion("No tienes permiso para modificar este establecimiento");
         }
-        
+
         try {
             // Crear directorio si no existe
             Path dirPath = Paths.get(uploadDir, "establecimientos");
             if (!Files.exists(dirPath)) {
                 Files.createDirectories(dirPath);
             }
-            
+
             // Generar nombre único para el archivo
             String nombreArchivo = UUID.randomUUID().toString() + "_" + imagen.getOriginalFilename();
             Path rutaCompleta = dirPath.resolve(nombreArchivo);
-            
+
             // Guardar la imagen
             Files.copy(imagen.getInputStream(), rutaCompleta);
-            
+
             // Construir URL de la imagen
             String urlImagen = "/uploads/establecimientos/" + nombreArchivo;
-            
+
             // Actualizar URL de la imagen en el establecimiento
             establecimiento.setImagenUrl(urlImagen);
             establecimientoRepositorio.save(establecimiento);
-            
+
             return urlImagen;
         } catch (IOException e) {
             throw new EstablecimientoExcepcion("Error al subir la imagen: " + e.getMessage());
@@ -316,13 +317,13 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
     public void agregarCaracteristica(Long id, String caracteristica) {
         Establecimiento establecimiento = establecimientoRepositorio.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoExcepcion("Establecimiento no encontrado con ID: " + id));
-        
+
         // Verificar que el establecimiento pertenece al proAdmin autenticado
         ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
         if (!establecimiento.getProAdmin().getId().equals(proAdmin.getId())) {
             throw new EstablecimientoExcepcion("No tienes permiso para modificar este establecimiento");
         }
-        
+
         establecimiento.agregarCaracteristica(caracteristica);
         establecimientoRepositorio.save(establecimiento);
     }
@@ -332,56 +333,91 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
     public void eliminarCaracteristica(Long id, String caracteristica) {
         Establecimiento establecimiento = establecimientoRepositorio.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoExcepcion("Establecimiento no encontrado con ID: " + id));
-        
+
         // Verificar que el establecimiento pertenece al proAdmin autenticado
         ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
         if (!establecimiento.getProAdmin().getId().equals(proAdmin.getId())) {
             throw new EstablecimientoExcepcion("No tienes permiso para modificar este establecimiento");
         }
-        
+
         establecimiento.eliminarCaracteristica(caracteristica);
         establecimientoRepositorio.save(establecimiento);
     }
-    
+
     // Método para convertir entidad a DTO
     private EstablecimientoDTO convertirADTO(Establecimiento establecimiento) {
         EstablecimientoDTO dto = new EstablecimientoDTO();
-        dto.setId(establecimiento.getId());
-        dto.setNombre(establecimiento.getNombre());
-        dto.setDescripcion(establecimiento.getDescripcion());
-        dto.setDireccion(establecimiento.getDireccion());
-        dto.setCiudad(establecimiento.getCiudad());
-        dto.setCodigoPostal(establecimiento.getCodigoPostal());
-        dto.setTelefono(establecimiento.getTelefono());
-        dto.setEmail(establecimiento.getEmail());
-        dto.setSitioWeb(establecimiento.getSitioWeb());
-        dto.setHorariosAtencion(establecimiento.getHorariosAtencion());
-        dto.setImagenUrl(establecimiento.getImagenUrl());
-        dto.setFechaRegistro(establecimiento.getFechaRegistro());
-        dto.setFechaActualizacion(establecimiento.getFechaActualizacion());
-        dto.setEstaActivo(establecimiento.isEstaActivo());
-        dto.setProAdminId(establecimiento.getProAdmin().getId());
-        dto.setCaracteristicas(establecimiento.getCaracteristicas());
-        
-        // Determinar tipo y campos específicos
-        if (establecimiento instanceof Barberia) {
-            Barberia barberia = (Barberia) establecimiento;
-            dto.setTipoEstablecimiento("BARBERIA");
-            dto.setEspecialidadCortes(barberia.getEspecialidadCortes());
-            dto.setTieneServiciosBarba(barberia.isTieneServiciosBarba());
-            dto.setTieneServiciosFaciales(barberia.isTieneServiciosFaciales());
-            dto.setEstiloBarberia(barberia.getEstiloBarberia());
-            dto.setAforoMaximo(barberia.getAforoMaximo());
-        } else if (establecimiento instanceof SalonBelleza) {
-            SalonBelleza salon = (SalonBelleza) establecimiento;
-            dto.setTipoEstablecimiento("SALON_BELLEZA");
-            dto.setEspecialidad(salon.getEspecialidad());
-            dto.setTieneServiciosMaquillaje(salon.isTieneServiciosMaquillaje());
-            dto.setTieneServiciosUnas(salon.isTieneServiciosUnas());
-            dto.setTieneTratamientosCapilares(salon.isTieneTratamientosCapilares());
-            dto.setAforoMaximo(salon.getAforoMaximo());
+
+        try {
+            // Campos básicos
+            dto.setId(establecimiento.getId());
+            dto.setNombre(establecimiento.getNombre());
+            dto.setDescripcion(establecimiento.getDescripcion());
+            dto.setDireccion(establecimiento.getDireccion());
+            dto.setCiudad(establecimiento.getCiudad());
+            dto.setCodigoPostal(establecimiento.getCodigoPostal());
+            dto.setTelefono(establecimiento.getTelefono());
+            dto.setEmail(establecimiento.getEmail());
+            dto.setSitioWeb(establecimiento.getSitioWeb());
+            dto.setHorariosAtencion(establecimiento.getHorariosAtencion());
+            dto.setImagenUrl(establecimiento.getImagenUrl());
+            dto.setFechaRegistro(establecimiento.getFechaRegistro());
+            dto.setFechaActualizacion(establecimiento.getFechaActualizacion());
+            dto.setEstaActivo(establecimiento.isEstaActivo()); // Campo principal
+            dto.setProAdminId(establecimiento.getProAdmin().getId());
+
+            // Nuevos campos agregados - con validación null
+            dto.setHoraApertura(
+                    establecimiento.getHoraApertura() != null ? establecimiento.getHoraApertura() : "09:00");
+            dto.setHoraCierre(establecimiento.getHoraCierre() != null ? establecimiento.getHoraCierre() : "18:00");
+            dto.setDuracionCitaDefecto(
+                    establecimiento.getDuracionCitaDefecto() != null ? establecimiento.getDuracionCitaDefecto() : 30);
+            dto.setIntervalosCitas(
+                    establecimiento.getIntervalosCitas() != null ? establecimiento.getIntervalosCitas() : 15);
+            dto.setReferencias(establecimiento.getReferencias());
+
+            // Días de atención - manejar nulos
+            if (establecimiento.getDiasAtencion() != null) {
+                dto.setDiasAtencion(new HashSet<>(establecimiento.getDiasAtencion()));
+            } else {
+                dto.setDiasAtencion(new HashSet<>());
+            }
+
+            // Características - manejar nulos
+            if (establecimiento.getCaracteristicas() != null) {
+                dto.setCaracteristicas(new HashSet<>(establecimiento.getCaracteristicas()));
+            } else {
+                dto.setCaracteristicas(new HashSet<>());
+            }
+
+            // Determinar tipo y campos específicos
+            if (establecimiento instanceof Barberia) {
+                Barberia barberia = (Barberia) establecimiento;
+                dto.setTipoEstablecimiento("BARBERIA");
+                dto.setEspecialidadCortes(barberia.getEspecialidadCortes());
+                dto.setTieneServiciosBarba(barberia.isTieneServiciosBarba());
+                dto.setTieneServiciosFaciales(barberia.isTieneServiciosFaciales());
+                dto.setEstiloBarberia(barberia.getEstiloBarberia());
+                dto.setAforoMaximo(barberia.getAforoMaximo());
+            } else if (establecimiento instanceof SalonBelleza) {
+                SalonBelleza salon = (SalonBelleza) establecimiento;
+                dto.setTipoEstablecimiento("SALON_BELLEZA");
+                dto.setEspecialidad(salon.getEspecialidad());
+                dto.setTieneServiciosMaquillaje(salon.isTieneServiciosMaquillaje());
+                dto.setTieneServiciosUnas(salon.isTieneServiciosUnas());
+                dto.setTieneTratamientosCapilares(salon.isTieneTratamientosCapilares());
+                dto.setAforoMaximo(salon.getAforoMaximo());
+            } else {
+                // Establecimiento genérico
+                dto.setTipoEstablecimiento("GENERICO");
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error convirtiendo establecimiento a DTO: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error en conversión de establecimiento: " + e.getMessage(), e);
         }
-        
+
         return dto;
     }
 }

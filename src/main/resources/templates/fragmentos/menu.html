@@ -68,12 +68,21 @@
             </li>
             
             <div class="sidebar-divider"></div>
-            <div class="sidebar-heading">Perfil</div>
+            <div class="sidebar-heading">Configuración</div>
             
             <li class="sidebar-item">
                 <a th:href="@{/proadmin/perfil}" class="sidebar-link">
                     <i class="fas fa-user"></i>
                     <span>Mi Perfil</span>
+                </a>
+            </li>
+            
+            <!-- Nuevo botón de modo oscuro en el sidebar -->
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link" id="toggle-dark-mode-sidebar">
+                    <i class="fas fa-moon theme-icon-light"></i>
+                    <i class="fas fa-sun theme-icon-dark"></i>
+                    <span>Modo Oscuro</span>
                 </a>
             </li>
         </ul>
@@ -86,5 +95,21 @@
             </form>
         </div>
     </div>
+
+    <!-- Script para el modo oscuro en el sidebar -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Botón de modo oscuro en el sidebar
+            const botonSidebar = document.getElementById('toggle-dark-mode-sidebar');
+            if (botonSidebar) {
+                botonSidebar.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (window.alternarModoOscuro) {
+                        window.alternarModoOscuro();
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
