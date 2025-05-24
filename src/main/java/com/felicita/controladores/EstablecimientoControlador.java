@@ -1,10 +1,12 @@
 package com.felicita.controladores;
 
 import com.felicita.dto.EstablecimientoDTO;
+import com.felicita.dto.EstadisticasDTO;
 import com.felicita.dto.ServicioDTO;
 import com.felicita.excepciones.EstablecimientoExcepcion;
 import com.felicita.excepciones.RecursoNoEncontradoExcepcion;
 import com.felicita.servicios.EstablecimientoServicio;
+import com.felicita.servicios.ProAdminServicio;
 import com.felicita.servicios.ServicioServicio;
 
 import jakarta.validation.Valid;
@@ -32,11 +34,40 @@ public class EstablecimientoControlador {
     @Autowired
     private ServicioServicio servicioServicio;
 
+    @Autowired
+    private ProAdminServicio proAdminServicio;
+
     @GetMapping
     public String listarEstablecimientos(Model model) {
         List<EstablecimientoDTO> establecimientos = establecimientoServicio.obtenerEstablecimientosProAdmin();
         model.addAttribute("establecimientos", establecimientos);
         return "proadmin/establecimientos";
+    }
+
+    @GetMapping("/{id}")
+    public String detalleEstablecimiento(@PathVariable Long id, Model model) {
+        try {
+            // Obtener el establecimiento
+            EstablecimientoDTO establecimiento = establecimientoServicio.obtenerEstablecimientoPorId(id);
+            model.addAttribute("establecimiento", establecimiento);
+
+            // Obtener los servicios destacados (máximo 5)
+            List<ServicioDTO> serviciosDestacados = servicioServicio.obtenerServiciosPorEstablecimiento(id);
+            if (serviciosDestacados.size() > 5) {
+                serviciosDestacados = serviciosDestacados.subList(0, 5);
+            }
+            model.addAttribute("serviciosDestacados", serviciosDestacados);
+
+            // Obtener estadísticas específicas del establecimiento
+            EstadisticasDTO estadisticas = proAdminServicio.obtenerEstadisticasEstablecimiento(id);
+            model.addAttribute("estadisticas", estadisticas);
+
+            return "proadmin/detalle-establecimiento";
+        } catch (RecursoNoEncontradoExcepcion e) {
+            return "redirect:/error/404";
+        } catch (EstablecimientoExcepcion e) {
+            return "redirect:/error/403";
+        }
     }
 
     /**
@@ -55,17 +86,46 @@ public class EstablecimientoControlador {
 
             // Preparar categorías disponibles para el filtro
             List<String> categorias = new ArrayList<>();
-            // Extraer categorías únicas de los servicios
+
+            // Agregar categorías predefinidas según el tipo de establecimiento
+            if ("BARBERIA".equals(establecimiento.getTipoEstablecimiento())) {
+                categorias.add("Corte de Cabello");
+                categorias.add("Arreglo de Barba");
+                categorias.add("Corte y Barba");
+                categorias.add("Afeitado Clásico");
+                categorias.add("Tratamientos Capilares");
+                categorias.add("Servicios Faciales");
+            } else if ("SALON_BELLEZA".equals(establecimiento.getTipoEstablecimiento())) {
+                categorias.add("Corte y Peinado");
+                categorias.add("Coloración");
+                categorias.add("Tratamientos Capilares");
+                categorias.add("Maquillaje");
+                categorias.add("Manicure");
+                categorias.add("Pedicure");
+                categorias.add("Depilación");
+                categorias.add("Tratamientos Faciales");
+            }
+
+            // Agregar categorías únicas de servicios existentes
             servicios.forEach(servicio -> {
                 if (servicio.getCategoria() != null && !servicio.getCategoria().isEmpty()
                         && !categorias.contains(servicio.getCategoria())) {
                     categorias.add(servicio.getCategoria());
                 }
             });
+
+            // Agregar categoría "Otros" si no existe
+            if (!categorias.contains("Otros")) {
+                categorias.add("Otros");
+            }
+
             model.addAttribute("categorias", categorias);
 
             // Para el formulario de nuevo servicio
-            model.addAttribute("servicioForm", new ServicioDTO());
+            ServicioDTO servicioForm = new ServicioDTO();
+            servicioForm.setEstablecimientoId(id);
+            servicioForm.setEstaDisponible(true); // Por defecto activo
+            model.addAttribute("servicioForm", servicioForm);
 
             return "proadmin/gestionar-servicios";
         } catch (RecursoNoEncontradoExcepcion e) {
@@ -73,6 +133,54 @@ public class EstablecimientoControlador {
         } catch (EstablecimientoExcepcion e) {
             return "redirect:/error/403";
         }
+    }
+
+    // Agregar este método al EstablecimientoControlador.java
+
+    @PostMapping("/{establecimientoId}/servicios")
+    public String guardarServicio(@PathVariable Long establecimientoId,
+            @Valid @ModelAttribute ServicioDTO servicioDTO,
+            BindingResult result,
+            RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            redirectAttributes.addFlashAttribute("error", "Error en los datos del formulario");
+            return "redirect:/proadmin/establecimientos/" + establecimientoId + "/servicios";
+        }
+
+        try {
+            // Establecer el ID del establecimiento
+            servicioDTO.setEstablecimientoId(establecimientoId);
+
+            if (servicioDTO.getId() != null && servicioDTO.getId() > 0) {
+                // Actualizar servicio existente
+                servicioServicio.actualizarServicio(servicioDTO.getId(), servicioDTO);
+                redirectAttributes.addFlashAttribute("mensaje", "Servicio actualizado correctamente");
+            } else {
+                // Crear nuevo servicio
+                servicioServicio.crearServicio(servicioDTO);
+                redirectAttributes.addFlashAttribute("mensaje", "Servicio creado correctamente");
+            }
+
+            return "redirect:/proadmin/establecimientos/" + establecimientoId + "/servicios";
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error al guardar el servicio: " + e.getMessage());
+            return "redirect:/proadmin/establecimientos/" + establecimientoId + "/servicios";
+        }
+    }
+
+    @PostMapping("/{establecimientoId}/servicios/eliminar")
+    public String eliminarServicio(@PathVariable Long establecimientoId,
+            @RequestParam Long id,
+            RedirectAttributes redirectAttributes) {
+        try {
+            servicioServicio.eliminarServicio(id);
+            redirectAttributes.addFlashAttribute("mensaje", "Servicio eliminado correctamente");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error al eliminar el servicio: " + e.getMessage());
+        }
+
+        return "redirect:/proadmin/establecimientos/" + establecimientoId + "/servicios";
     }
 
     @GetMapping("/nuevo")

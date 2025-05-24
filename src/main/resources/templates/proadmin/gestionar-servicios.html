@@ -150,7 +150,7 @@
                         <h5 class="modal-title" id="tituloModal">Nuevo Servicio</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <form id="formServicio" th:action="@{/proadmin/servicios/guardar}" method="post">
+                    <form id="formServicio" method="post">
                         <div class="modal-body">
                             <input type="hidden" id="servicioId" name="id">
                             <input type="hidden" name="establecimientoId" th:value="${establecimiento.id}">
@@ -158,21 +158,33 @@
                             <div class="mb-3">
                                 <label for="nombre" class="form-label">Nombre del Servicio *</label>
                                 <input type="text" class="form-control" id="nombre" name="nombre" required>
+                                <div class="invalid-feedback">
+                                    Por favor ingresa el nombre del servicio.
+                                </div>
                             </div>
                             
                             <div class="mb-3">
                                 <label for="descripcion" class="form-label">Descripción</label>
-                                <textarea class="form-control" id="descripcion" name="descripcion" rows="3"></textarea>
+                                <textarea class="form-control" id="descripcion" name="descripcion" rows="3" 
+                                        placeholder="Describe el servicio que ofreces..."></textarea>
                             </div>
                             
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
-                                    <label for="duracion" class="form-label">Duración (minutos) *</label>
-                                    <input type="number" class="form-control" id="duracion" name="duracion" min="5" step="5" required>
+                                    <label for="duracionMinutos" class="form-label">Duración (minutos) *</label>
+                                    <input type="number" class="form-control" id="duracionMinutos" name="duracionMinutos" 
+                                        min="5" step="5" value="30" required>
+                                    <div class="invalid-feedback">
+                                        Por favor ingresa la duración en minutos.
+                                    </div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="precio" class="form-label">Precio (S/) *</label>
-                                    <input type="number" class="form-control" id="precio" name="precio" min="0" step="0.01" required>
+                                    <input type="number" class="form-control" id="precio" name="precio" 
+                                        min="0" step="0.01" placeholder="0.00" required>
+                                    <div class="invalid-feedback">
+                                        Por favor ingresa el precio del servicio.
+                                    </div>
                                 </div>
                             </div>
                             
@@ -180,20 +192,33 @@
                                 <label for="categoria" class="form-label">Categoría *</label>
                                 <select class="form-select" id="categoria" name="categoria" required>
                                     <option value="">Selecciona una categoría</option>
-                                    <option th:each="categoria : ${categorias}" th:value="${categoria}" th:text="${categoria}"></option>
+                                    <option th:each="categoria : ${categorias}" 
+                                            th:value="${categoria}" 
+                                            th:text="${categoria}">Categoría</option>
                                 </select>
+                                <div class="invalid-feedback">
+                                    Por favor selecciona una categoría.
+                                </div>
+                                <div class="form-text">
+                                    Si no encuentras la categoría adecuada, selecciona "Otros".
+                                </div>
                             </div>
                             
                             <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" id="activo" name="activo" checked>
-                                <label class="form-check-label" for="activo">
-                                    Servicio Activo
+                                <input class="form-check-input" type="checkbox" id="estaDisponible" name="estaDisponible" checked>
+                                <label class="form-check-label" for="estaDisponible">
+                                    Servicio Disponible
                                 </label>
+                                <div class="form-text">
+                                    Los clientes solo podrán reservar servicios disponibles.
+                                </div>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="submit" class="btn btn-primary">Guardar</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Guardar Servicio
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -230,91 +255,130 @@
     <script th:src="@{/js/proadmin.js}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Configurar modal para editar servicio
-            const botonesEditar = document.querySelectorAll('.btn-editar-servicio');
-            botonesEditar.forEach(boton => {
-                boton.addEventListener('click', function() {
-                    const id = this.getAttribute('data-id');
-                    const nombre = this.getAttribute('data-nombre');
-                    const descripcion = this.getAttribute('data-descripcion');
-                    const duracion = this.getAttribute('data-duracion');
-                    const precio = this.getAttribute('data-precio');
-                    const categoria = this.getAttribute('data-categoria');
-                    const activo = this.getAttribute('data-activo') === 'true';
-                    
-                    // Establecer valores en el formulario
-                    document.getElementById('tituloModal').textContent = 'Editar Servicio';
-                    document.getElementById('servicioId').value = id;
-                    document.getElementById('nombre').value = nombre;
-                    document.getElementById('descripcion').value = descripcion;
-                    document.getElementById('duracion').value = duracion;
-                    document.getElementById('precio').value = precio;
-                    document.getElementById('categoria').value = categoria;
-                    document.getElementById('activo').checked = activo;
-                    
-                    // Mostrar modal
-                    const modal = new bootstrap.Modal(document.getElementById('modalNuevoServicio'));
-                    modal.show();
-                });
-            });
-            
-            // Configurar modal para eliminar servicio
-            const botonesEliminar = document.querySelectorAll('.btn-eliminar-servicio');
-            botonesEliminar.forEach(boton => {
-                boton.addEventListener('click', function() {
-                    const id = this.getAttribute('data-id');
-                    const nombre = this.getAttribute('data-nombre');
-                    
-                    // Establecer valores en el formulario de eliminación
-                    document.getElementById('servicioIdEliminar').value = id;
-                    document.getElementById('nombreServicioEliminar').textContent = nombre;
-                    
-                    // Mostrar modal
-                    const modal = new bootstrap.Modal(document.getElementById('modalEliminarServicio'));
-                    modal.show();
-                });
-            });
-            
-            // Restablecer formulario al abrir modal de nuevo servicio
-            const modalNuevoServicio = document.getElementById('modalNuevoServicio');
-            modalNuevoServicio.addEventListener('shown.bs.modal', function(event) {
-                if (event.relatedTarget && event.relatedTarget.classList.contains('btn-primary')) {
-                    document.getElementById('tituloModal').textContent = 'Nuevo Servicio';
-                    document.getElementById('formServicio').reset();
-                    document.getElementById('servicioId').value = '';
-                    document.getElementById('activo').checked = true;
-                }
-            });
-            
-            // Filtrado de servicios
-            const inputBusqueda = document.getElementById('buscarServicio');
-            const selectCategoria = document.getElementById('filtroCategoria');
-            
-            function filtrarServicios() {
-                const textoBusqueda = inputBusqueda.value.toLowerCase();
-                const categoriaSeleccionada = selectCategoria.value;
+        // Configurar validación del formulario
+        const formServicio = document.getElementById('formServicio');
+        
+        // Configurar modal para editar servicio
+        const botonesEditar = document.querySelectorAll('.btn-editar-servicio');
+        botonesEditar.forEach(boton => {
+            boton.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                const nombre = this.getAttribute('data-nombre');
+                const descripcion = this.getAttribute('data-descripcion');
+                const duracion = this.getAttribute('data-duracion');
+                const precio = this.getAttribute('data-precio');
+                const categoria = this.getAttribute('data-categoria');
+                const activo = this.getAttribute('data-activo') === 'true';
                 
-                const filas = document.querySelectorAll('#tablaServicios tbody tr');
+                // Cambiar título del modal
+                document.getElementById('tituloModal').textContent = 'Editar Servicio';
                 
-                filas.forEach(fila => {
-                    const nombre = fila.cells[1].textContent.toLowerCase();
-                    const descripcion = fila.cells[2].textContent.toLowerCase();
-                    const categoria = fila.cells[5].textContent;
-                    
-                    const coincideTexto = nombre.includes(textoBusqueda) || descripcion.includes(textoBusqueda);
-                    const coincideCategoria = categoriaSeleccionada === 'todas' || categoria === categoriaSeleccionada;
-                    
-                    if (coincideTexto && coincideCategoria) {
-                        fila.style.display = '';
-                    } else {
-                        fila.style.display = 'none';
-                    }
+                // Establecer valores en el formulario
+                document.getElementById('servicioId').value = id;
+                document.getElementById('nombre').value = nombre;
+                document.getElementById('descripcion').value = descripcion;
+                document.getElementById('duracionMinutos').value = duracion;
+                document.getElementById('precio').value = precio;
+                document.getElementById('categoria').value = categoria;
+                document.getElementById('estaDisponible').checked = activo;
+                
+                // Cambiar la acción del formulario para edición
+                formServicio.action = `/proadmin/servicios/${id}/editar`;
+                
+                // Mostrar modal
+                const modal = new bootstrap.Modal(document.getElementById('modalNuevoServicio'));
+                modal.show();
+            });
+        });
+        
+        // Configurar modal para eliminar servicio
+        const botonesEliminar = document.querySelectorAll('.btn-eliminar-servicio');
+        botonesEliminar.forEach(boton => {
+            boton.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                const nombre = this.getAttribute('data-nombre');
+                
+                // Establecer valores en el formulario de eliminación
+                document.getElementById('servicioIdEliminar').value = id;
+                document.getElementById('nombreServicioEliminar').textContent = nombre;
+                
+                // Mostrar modal
+                const modal = new bootstrap.Modal(document.getElementById('modalEliminarServicio'));
+                modal.show();
+            });
+        });
+        
+        // Restablecer formulario al abrir modal de nuevo servicio
+        const modalNuevoServicio = document.getElementById('modalNuevoServicio');
+        modalNuevoServicio.addEventListener('show.bs.modal', function(event) {
+            // Si el modal se abre desde el botón "Nuevo Servicio"
+            if (!event.relatedTarget || event.relatedTarget.classList.contains('btn-primary')) {
+                // Restablecer formulario
+                document.getElementById('tituloModal').textContent = 'Nuevo Servicio';
+                formServicio.reset();
+                document.getElementById('servicioId').value = '';
+                document.getElementById('estaDisponible').checked = true;
+                
+                // Restablecer la acción del formulario
+                const establecimientoId = document.querySelector('input[name="establecimientoId"]').value;
+                formServicio.action = `/proadmin/establecimientos/${establecimientoId}/servicios`;
+                
+                // Limpiar clases de validación
+                const inputs = formServicio.querySelectorAll('.form-control, .form-select');
+                inputs.forEach(input => {
+                    input.classList.remove('is-valid', 'is-invalid');
                 });
             }
-            
-            inputBusqueda.addEventListener('input', filtrarServicios);
-            selectCategoria.addEventListener('change', filtrarServicios);
         });
+        
+        // Validación del formulario
+        formServicio.addEventListener('submit', function(event) {
+            if (!formServicio.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            formServicio.classList.add('was-validated');
+        });
+        
+        // Filtrado de servicios
+        const inputBusqueda = document.getElementById('buscarServicio');
+        const selectCategoria = document.getElementById('filtroCategoria');
+        
+        function filtrarServicios() {
+            const textoBusqueda = inputBusqueda ? inputBusqueda.value.toLowerCase() : '';
+            const categoriaSeleccionada = selectCategoria ? selectCategoria.value : 'todas';
+            
+            const filas = document.querySelectorAll('#tablaServicios tbody tr');
+            
+            filas.forEach(fila => {
+                const nombre = fila.cells[1].textContent.toLowerCase();
+                const descripcion = fila.cells[2].textContent.toLowerCase();
+                const categoria = fila.cells[5].textContent;
+                
+                const coincideTexto = nombre.includes(textoBusqueda) || descripcion.includes(textoBusqueda);
+                const coincideCategoria = categoriaSeleccionada === 'todas' || categoria === categoriaSeleccionada;
+                
+                if (coincideTexto && coincideCategoria) {
+                    fila.style.display = '';
+                } else {
+                    fila.style.display = 'none';
+                }
+            });
+        }
+        
+        if (inputBusqueda) {
+            inputBusqueda.addEventListener('input', filtrarServicios);
+        }
+        
+        if (selectCategoria) {
+            selectCategoria.addEventListener('change', filtrarServicios);
+        }
+        
+        // Debug: Verificar que las categorías se cargaron
+        const selectCategoriaModal = document.getElementById('categoria');
+        console.log('Opciones de categoría cargadas:', selectCategoriaModal.options.length);
+});
     </script>
 </body>
 </html>

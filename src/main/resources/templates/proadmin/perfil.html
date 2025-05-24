@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FELICITA - Mi Perfil</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/proadmin.css}">
+</head>
+<body>
+    <!-- Incluir el menú lateral -->
+    <div th:replace="~{fragmentos/menu :: menu}"></div>
+    
+    <main class="content">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Mi Perfil</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <a th:href="@{/proadmin/dashboard}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Volver al Dashboard
+                </a>
+            </div>
+        </div>
+        
+        <!-- Alertas -->
+        <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${mensaje}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- Información del perfil -->
+        <div class="row">
+            <!-- Columna izquierda - Información básica -->
+            <div class="col-xl-4">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Información Personal</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-4">
+                            <div class="display-icon bg-primary text-white mb-3">
+                                <i class="fas fa-user fa-3x"></i>
+                            </div>
+                            
+                            <h4 class="mb-1" th:text="${proAdmin.nombre + ' ' + proAdmin.apellido}">Nombre Completo</h4>
+                            <p class="text-muted">ProAdmin de FELICITA</p>
+                        </div>
+                        
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-envelope fa-fw text-primary me-2"></i>
+                                <div>
+                                    <div class="fw-bold small">Email</div>
+                                    <span th:text="${proAdmin.email}">Email</span>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-phone fa-fw text-primary me-2"></i>
+                                <div>
+                                    <div class="fw-bold small">Teléfono</div>
+                                    <span th:text="${proAdmin.telefono ?: 'No especificado'}">Teléfono</span>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-id-card fa-fw text-primary me-2"></i>
+                                <div>
+                                    <div class="fw-bold small">Documento de Identidad</div>
+                                    <span th:text="${proAdmin.documentoIdentidad ?: 'No especificado'}">DNI</span>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-store fa-fw text-primary me-2"></i>
+                                <div>
+                                    <div class="fw-bold small">Establecimientos</div>
+                                    <span th:text="${proAdmin.cantidadEstablecimientos}">0</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Información de suscripción -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Plan de Suscripción</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="fw-bold mb-1">Plan Actual:</div>
+                            <span class="badge bg-success" th:text="${proAdmin.planSubscripcion ?: 'Básico'}">Plan</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="fw-bold mb-1">Método de Pago:</div>
+                            <span th:text="${proAdmin.metodoPago ?: 'No configurado'}">Método</span>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <button class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-credit-card me-1"></i> Gestionar Suscripción
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Columna derecha - Formulario de edición -->
+            <div class="col-xl-8">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Editar Información</h6>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/proadmin/perfil}" th:object="${perfilForm}" method="post">
+                            <input type="hidden" th:field="*{id}">
+                            
+                            <!-- Información personal -->
+                            <h5 class="border-bottom pb-2 mb-3">Información Personal</h5>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="nombre" class="form-label">Nombre *</label>
+                                    <input type="text" class="form-control" id="nombre" th:field="*{nombre}" readonly>
+                                    <small class="text-muted">Para cambiar el nombre, contacta al administrador</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="apellido" class="form-label">Apellido *</label>
+                                    <input type="text" class="form-control" id="apellido" th:field="*{apellido}" readonly>
+                                    <small class="text-muted">Para cambiar el apellido, contacta al administrador</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label">Email *</label>
+                                    <input type="email" class="form-control" id="email" th:field="*{email}" readonly>
+                                    <small class="text-muted">Para cambiar el email, contacta al administrador</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="telefono" class="form-label">Teléfono</label>
+                                    <input type="tel" class="form-control" id="telefono" th:field="*{telefono}">
+                                </div>
+                            </div>
+                            
+                            <!-- Información adicional -->
+                            <h5 class="border-bottom pb-2 mb-3">Información Adicional</h5>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="documentoIdentidad" class="form-label">Documento de Identidad</label>
+                                    <input type="text" class="form-control" id="documentoIdentidad" th:field="*{documentoIdentidad}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="telefonoContacto" class="form-label">Teléfono de Contacto</label>
+                                    <input type="tel" class="form-control" id="telefonoContacto" th:field="*{telefonoContacto}">
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="direccion" class="form-label">Dirección</label>
+                                    <input type="text" class="form-control" id="direccion" th:field="*{direccion}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="ciudad" class="form-label">Ciudad</label>
+                                    <input type="text" class="form-control" id="ciudad" th:field="*{ciudad}">
+                                </div>
+                            </div>
+                            
+                            <!-- Información de suscripción -->
+                            <h5 class="border-bottom pb-2 mb-3">Información de Suscripción</h5>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="planSubscripcion" class="form-label">Plan de Suscripción</label>
+                                    <select class="form-select" id="planSubscripcion" th:field="*{planSubscripcion}">
+                                        <option value="">Seleccionar plan</option>
+                                        <option value="BASICO">Básico</option>
+                                        <option value="PREMIUM">Premium</option>
+                                        <option value="EMPRESARIAL">Empresarial</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="metodoPago" class="form-label">Método de Pago</label>
+                                    <select class="form-select" id="metodoPago" th:field="*{metodoPago}">
+                                        <option value="">Seleccionar método</option>
+                                        <option value="TARJETA_CREDITO">Tarjeta de Crédito</option>
+                                        <option value="TARJETA_DEBITO">Tarjeta de Débito</option>
+                                        <option value="TRANSFERENCIA">Transferencia Bancaria</option>
+                                        <option value="PAYPAL">PayPal</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="reset" class="btn btn-secondary me-md-2">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i> Guardar Cambios
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Sección de cambio de contraseña -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Cambiar Contraseña</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Para cambiar tu contraseña, contacta al administrador del sistema o utiliza la función "Olvidé mi contraseña" en la página de login.
+                        </div>
+                        <button class="btn btn-outline-primary" onclick="alert('Funcionalidad próximamente disponible')">
+                            <i class="fas fa-key me-1"></i> Solicitar Cambio de Contraseña
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/proadmin.js}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Validación del formulario
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                const telefono = document.getElementById('telefono').value;
+                const documentoIdentidad = document.getElementById('documentoIdentidad').value;
+                
+                // Validar formato de teléfono (opcional)
+                if (telefono && !/^\d{9,15}$/.test(telefono.replace(/[\s\-\(\)]/g, ''))) {
+                    alert('Por favor, ingresa un número de teléfono válido');
+                    e.preventDefault();
+                    return;
+                }
+                
+                // Validar documento de identidad (opcional)
+                if (documentoIdentidad && !/^\d{8,12}$/.test(documentoIdentidad)) {
+                    alert('Por favor, ingresa un documento de identidad válido');
+                    e.preventDefault();
+                    return;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
