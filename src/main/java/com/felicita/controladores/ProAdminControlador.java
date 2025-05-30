@@ -108,7 +108,7 @@ public class ProAdminControlador {
             categorias.add("Otros");
             model.addAttribute("categorias", categorias);
 
-            return "proadmin/servicios";
+            return "redirect:/proadmin/gestionar-servicios";
         } catch (RecursoNoEncontradoExcepcion e) {
             return "redirect:/error/404";
         }

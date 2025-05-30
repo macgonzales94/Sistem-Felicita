@@ -46,22 +46,7 @@ public class ClienteControlador {
         return "redirect:/cliente/perfil";
     }
     
-    @GetMapping("/establecimientos")
-    public String listarEstablecimientos(Model model) {
-        return "cliente/establecimientos";
-    }
-    
-    @GetMapping("/establecimientos/{id}")
-    public String detalleEstablecimiento(@PathVariable Long id, Model model) {
-        return "cliente/detalle-establecimiento";
-    }
-    /*
-    @GetMapping("/giftcards")
-    public String giftcards(Model model) {
-        return "cliente/giftcards";
-    }
-    */
-    
+
     // API REST endpoints para acceso desde JavaScript
     
     @GetMapping("/api/perfil")

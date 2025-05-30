@@ -76,10 +76,49 @@ public class Establecimiento {
     @Column(name = "caracteristica")
     private Set<String> caracteristicas = new HashSet<>();
 
+    // ===== CAMPOS AGREGADOS PARA CORREGIR EL PROBLEMA =====
+    
+    @Column(name = "hora_apertura", length = 5)
+    private String horaApertura = "09:00";
+
+    @Column(name = "hora_cierre", length = 5)
+    private String horaCierre = "18:00";
+
+    @ElementCollection
+    @CollectionTable(name = "establecimiento_dias_atencion", joinColumns = @JoinColumn(name = "establecimiento_id"))
+    @Column(name = "dia")
+    private Set<String> diasAtencion = new HashSet<>();
+
+    @Column(name = "duracion_cita_defecto")
+    private Integer duracionCitaDefecto = 30;
+
+    @Column(name = "intervalos_citas")
+    private Integer intervalosCitas = 15;
+
+    @Column(name = "referencias", length = 300)
+    private String referencias;
+
     @PrePersist
     protected void onCreate() {
         fechaRegistro = LocalDateTime.now();
         fechaActualizacion = fechaRegistro;
+        
+        // Establecer valores por defecto si no se han establecido
+        if (horaApertura == null) {
+            horaApertura = "09:00";
+        }
+        if (horaCierre == null) {
+            horaCierre = "18:00";
+        }
+        if (duracionCitaDefecto == null) {
+            duracionCitaDefecto = 30;
+        }
+        if (intervalosCitas == null) {
+            intervalosCitas = 15;
+        }
+        if (diasAtencion == null) {
+            diasAtencion = new HashSet<>();
+        }
     }
 
     @PreUpdate
@@ -101,31 +140,31 @@ public class Establecimiento {
 
     // Método para agregar una característica
     public void agregarCaracteristica(String caracteristica) {
+        if (caracteristicas == null) {
+            caracteristicas = new HashSet<>();
+        }
         caracteristicas.add(caracteristica);
     }
 
     // Método para eliminar una característica
     public void eliminarCaracteristica(String caracteristica) {
-        caracteristicas.remove(caracteristica);
+        if (caracteristicas != null) {
+            caracteristicas.remove(caracteristica);
+        }
     }
-
-    @Column(name = "hora_apertura")
-    private String horaApertura;
-
-    @Column(name = "hora_cierre")
-    private String horaCierre;
-
-    @ElementCollection
-    @CollectionTable(name = "establecimiento_dias_atencion", joinColumns = @JoinColumn(name = "establecimiento_id"))
-    @Column(name = "dia")
-    private Set<String> diasAtencion = new HashSet<>();
-
-    @Column(name = "duracion_cita_defecto")
-    private Integer duracionCitaDefecto = 30;
-
-    @Column(name = "intervalos_citas")
-    private Integer intervalosCitas = 15;
-
-    @Column(name = "referencias", length = 300)
-    private String referencias;
+    
+    // Método para agregar día de atención
+    public void agregarDiaAtencion(String dia) {
+        if (diasAtencion == null) {
+            diasAtencion = new HashSet<>();
+        }
+        diasAtencion.add(dia);
+    }
+    
+    // Método para eliminar día de atención
+    public void eliminarDiaAtencion(String dia) {
+        if (diasAtencion != null) {
+            diasAtencion.remove(dia);
+        }
+    }
 }

@@ -79,7 +79,8 @@
                                     </a>
                                 </div>
                                 <div class="col-12 mt-2">
-                                    <a th:href="@{/proadmin/establecimientos/{id}/servicios(id=${establecimiento.id})}" class="btn btn-success w-100">
+                                    <!-- ✅ RUTA CORREGIDA: Cambio principal aquí -->
+                                    <a th:href="@{/proadmin/gestionar-servicios(establecimientoId=${establecimiento.id})}" class="btn btn-success w-100">
                                         <i class="fas fa-cogs me-1"></i> Gestionar Servicios
                                     </a>
                                 </div>
@@ -214,6 +215,19 @@
                     window.location.reload();
                 });
             }
+            
+            // Confirmación antes de gestionar servicios (opcional)
+            document.querySelectorAll('a[href*="/gestionar-servicios"]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // Pequeño delay para mostrar que se está cargando
+                    const icon = this.querySelector('i');
+                    if (icon) {
+                        icon.className = 'fas fa-spinner fa-spin me-1';
+                        this.querySelector('span')?.remove(); // Remover texto si existe como span
+                        this.appendChild(document.createTextNode(' Cargando...'));
+                    }
+                });
+            });
         });
     </script>
 </body>

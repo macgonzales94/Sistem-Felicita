@@ -60,4 +60,6 @@ public interface EstablecimientoRepositorio extends JpaRepository<Establecimient
     @Query("SELECT COUNT(e) FROM Establecimiento e WHERE e.estaActivo = true AND LOWER(e.ciudad) = LOWER(:ciudad)")
     long countEstablecimientosActivosByCiudad(@Param("ciudad") String ciudad);
 
+    Optional<Establecimiento> findByIdAndProAdminId(Long id, Long proAdminId);
 }
+

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FELICITA - Servicios</title>
+    <title>FELICITA - Gestionar Servicios</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/estilos.css}">
@@ -16,14 +16,12 @@
     
     <main class="content">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <h1 class="h2">Servicios</h1>
+            <h1 class="h2">Gestionar Servicios</h1>
             <div class="btn-toolbar mb-2 mb-md-0">
-                <div class="btn-group me-2">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btnActualizar">
-                        <i class="fas fa-sync-alt me-1"></i> Actualizar
-                    </button>
-                </div>
-                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalSeleccionEstablecimiento">
+                <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="window.location.reload()">
+                    <i class="fas fa-sync-alt me-1"></i> Actualizar
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoServicio" th:if="${establecimientoSeleccionado != null}">
                     <i class="fas fa-plus me-1"></i> Nuevo Servicio
                 </button>
             </div>
@@ -40,129 +38,210 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         
-        <!-- Filtros -->
+        <!-- Selector de establecimiento -->
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Filtros</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Seleccionar Establecimiento</h6>
             </div>
             <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label for="filtroEstablecimiento" class="form-label">Establecimiento</label>
-                        <select class="form-select" id="filtroEstablecimiento">
-                            <option value="todos">Todos los establecimientos</option>
-                            <option th:each="establecimiento : ${establecimientos}" 
-                                    th:value="${establecimiento.id}" 
-                                    th:text="${establecimiento.nombre}"></option>
+                <div class="row" th:if="${not #lists.isEmpty(establecimientos)}">
+                    <div class="col-md-6">
+                        <label for="selectorEstablecimiento" class="form-label">Establecimiento:</label>
+                        <select class="form-select" id="selectorEstablecimiento" onchange="cambiarEstablecimiento()">
+                            <option value="">Seleccione un establecimiento</option>
+                            <option th:each="est : ${establecimientos}" 
+                                    th:value="${est.id}" 
+                                    th:text="${est.nombre}" 
+                                    th:selected="${est.id == establecimientoIdSeleccionado}">
+                                Establecimiento
+                            </option>
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label for="filtroCategoria" class="form-label">Categoría</label>
-                        <select class="form-select" id="filtroCategoria">
-                            <option value="todas">Todas las categorías</option>
-                            <option th:each="categoria : ${categorias}" 
-                                    th:value="${categoria}" 
-                                    th:text="${categoria}"></option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="filtroBusqueda" class="form-label">Búsqueda</label>
-                        <input type="text" class="form-control" id="filtroBusqueda" placeholder="Nombre, descripción...">
+                    <div class="col-md-6" th:if="${establecimientoSeleccionado != null}">
+                        <label class="form-label">Información:</label>
+                        <div class="p-3 border rounded bg-light">
+                            <h6 th:text="${establecimientoSeleccionado.nombre}">Nombre</h6>
+                            <small class="text-muted">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                <span th:text="${establecimientoSeleccionado.direccion}">Dirección</span>
+                            </small>
+                            <br>
+                            <small class="text-muted">
+                                <i class="fas fa-store me-1"></i>
+                                <span th:text="${establecimientoSeleccionado.tipoEstablecimiento == 'BARBERIA' ? 'Barbería' : 'Salón de Belleza'}">Tipo</span>
+                            </small>
+                        </div>
                     </div>
                 </div>
-                <div class="text-end mt-3">
-                    <button class="btn btn-primary" id="btnAplicarFiltros">
-                        <i class="fas fa-filter me-1"></i> Aplicar Filtros
-                    </button>
-                    <button class="btn btn-outline-secondary" id="btnLimpiarFiltros">
-                        <i class="fas fa-times me-1"></i> Limpiar
-                    </button>
+                
+                <!-- Mensaje si no hay establecimientos -->
+                <div class="text-center py-4" th:if="${#lists.isEmpty(establecimientos)}">
+                    <i class="fas fa-store-slash fa-3x text-muted mb-3"></i>
+                    <h5>No tienes establecimientos registrados</h5>
+                    <p class="text-muted">Primero debes crear un establecimiento para poder gestionar servicios.</p>
+                    <a th:href="@{/proadmin/establecimientos/nuevo}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i> Crear Establecimiento
+                    </a>
                 </div>
             </div>
         </div>
         
-        <!-- Listado de servicios por establecimiento -->
-        <div th:each="establecimiento : ${establecimientos}" class="card shadow mb-4 card-establecimiento">
+        <!-- Listado de servicios -->
+        <div class="card shadow mb-4" th:if="${establecimientoSeleccionado != null}">
             <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                <h6 class="m-0 font-weight-bold text-primary" th:text="${establecimiento.nombre}">Nombre del Establecimiento</h6>
-                <a th:href="@{/proadmin/establecimientos/{id}/servicios(id=${establecimiento.id})}" class="btn btn-sm btn-primary">
-                    <i class="fas fa-cogs me-1"></i> Gestionar Servicios
-                </a>
+                <h6 class="m-0 font-weight-bold text-primary">
+                    Servicios de <span th:text="${establecimientoSeleccionado.nombre}">Establecimiento</span>
+                </h6>
+                <div class="d-flex gap-2">
+                    <input type="text" class="form-control form-control-sm" id="buscarServicio" placeholder="Buscar servicio..." style="width: 200px;">
+                    <select class="form-select form-select-sm" id="filtroCategoria" style="width: 150px;">
+                        <option value="">Todas las categorías</option>
+                        <option th:each="categoria : ${categorias}" th:value="${categoria}" th:text="${categoria}">Categoría</option>
+                    </select>
+                </div>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered tabla-servicios" width="100%" cellspacing="0">
+                <div class="table-responsive" th:if="${not #lists.isEmpty(servicios)}">
+                    <table class="table table-bordered" id="tablaServicios">
                         <thead>
                             <tr>
                                 <th>Nombre</th>
                                 <th>Descripción</th>
-                                <th>Duración (min)</th>
-                                <th>Precio (S/)</th>
+                                <th>Duración</th>
+                                <th>Precio</th>
                                 <th>Categoría</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="servicio : ${serviciosPorEstablecimiento.get(establecimiento.id)}">
-                                <td th:text="${servicio.nombre}">Corte de Cabello</td>
-                                <td th:text="${servicio.descripcion}">Descripción del servicio</td>
-                                <td th:text="${servicio.duracion}">30</td>
-                                <td th:text="${#numbers.formatDecimal(servicio.precio, 1, 2)}">25.00</td>
-                                <td th:text="${servicio.categoria}" th:attr="data-categoria=${servicio.categoria}">Cortes</td>
+                            <tr th:each="servicio : ${servicios}">
+                                <td th:text="${servicio.nombre}">Servicio</td>
+                                <td th:text="${servicio.descripcion}">Descripción</td>
+                                <td th:text="${servicio.duracionMinutos + ' min'}">30 min</td>
+                                <td th:text="${'S/ ' + #numbers.formatDecimal(servicio.precio, 1, 2)}">S/ 25.00</td>
+                                <td th:text="${servicio.categoria}">Categoría</td>
                                 <td>
-                                    <span th:if="${servicio.activo}" class="badge bg-success">Activo</span>
-                                    <span th:unless="${servicio.activo}" class="badge bg-danger">Inactivo</span>
+                                    <span th:if="${servicio.estaDisponible}" class="badge bg-success">Disponible</span>
+                                    <span th:unless="${servicio.estaDisponible}" class="badge bg-danger">No disponible</span>
                                 </td>
                                 <td>
-                                    <a th:href="@{/proadmin/establecimientos/{idEstablecimiento}/servicios(idEstablecimiento=${establecimiento.id})}" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-primary btn-editar-servicio" 
+                                                th:data-id="${servicio.id}"
+                                                th:data-nombre="${servicio.nombre}"
+                                                th:data-descripcion="${servicio.descripcion}"
+                                                th:data-duracion="${servicio.duracionMinutos}"
+                                                th:data-precio="${servicio.precio}"
+                                                th:data-categoria="${servicio.categoria}"
+                                                th:data-disponible="${servicio.estaDisponible}"
+                                                title="Editar servicio">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger btn-eliminar-servicio" 
+                                                th:data-id="${servicio.id}" 
+                                                th:data-nombre="${servicio.nombre}"
+                                                title="Eliminar servicio">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-                <div th:if="${#lists.isEmpty(serviciosPorEstablecimiento.get(establecimiento.id))}" class="alert alert-info text-center">
-                    No hay servicios para este establecimiento.
-                    <a th:href="@{/proadmin/establecimientos/{id}/servicios(id=${establecimiento.id})}" class="alert-link">Agregar servicios</a>
+                
+                <!-- Mensaje cuando no hay servicios -->
+                <div class="text-center py-4" th:if="${#lists.isEmpty(servicios)}">
+                    <i class="fas fa-concierge-bell fa-3x text-muted mb-3"></i>
+                    <h5>No hay servicios registrados</h5>
+                    <p class="text-muted">Agrega tu primer servicio para comenzar a recibir reservas.</p>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoServicio">
+                        <i class="fas fa-plus me-1"></i> Agregar Primer Servicio
+                    </button>
                 </div>
             </div>
         </div>
         
-        <!-- Modal para seleccionar establecimiento -->
-        <div class="modal fade" id="modalSeleccionEstablecimiento" tabindex="-1" aria-hidden="true">
+        <!-- Modal Nuevo/Editar Servicio -->
+        <div class="modal fade" id="modalNuevoServicio" tabindex="-1" aria-hidden="true" th:if="${establecimientoSeleccionado != null}">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="tituloModalServicio">Nuevo Servicio</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="formServicio" th:action="@{/proadmin/gestionar-servicios/nuevo}" method="post">
+                        <div class="modal-body">
+                            <input type="hidden" id="servicioId" name="id">
+                            <input type="hidden" name="establecimientoId" th:value="${establecimientoIdSeleccionado}">
+                            
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label for="nombre" class="form-label">Nombre del Servicio *</label>
+                                    <input type="text" class="form-control" id="nombre" name="nombre" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="categoria" class="form-label">Categoría *</label>
+                                    <select class="form-select" id="categoria" name="categoria" required>
+                                        <option value="">Seleccionar</option>
+                                        <option th:each="categoria : ${categorias}" th:value="${categoria}" th:text="${categoria}">Categoría</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="descripcion" class="form-label">Descripción</label>
+                                    <textarea class="form-control" id="descripcion" name="descripcion" rows="3"></textarea>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <label for="duracionMinutos" class="form-label">Duración (min) *</label>
+                                    <input type="number" class="form-control" id="duracionMinutos" name="duracionMinutos" min="5" step="5" value="30" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="precio" class="form-label">Precio (S/) *</label>
+                                    <input type="number" class="form-control" id="precio" name="precio" min="0" step="0.01" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Estado</label>
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" id="estaDisponible" name="estaDisponible" checked>
+                                        <label class="form-check-label" for="estaDisponible">
+                                            Servicio disponible
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Guardar Servicio
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal Eliminar Servicio -->
+        <div class="modal fade" id="modalEliminarServicio" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Seleccionar Establecimiento</h5>
+                        <h5 class="modal-title">Confirmar Eliminación</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p>Selecciona el establecimiento al que deseas agregar servicios:</p>
-                        
-                        <div class="list-group">
-                            <a th:each="establecimiento : ${establecimientos}" 
-                               th:href="@{/proadmin/establecimientos/{id}/servicios(id=${establecimiento.id})}" 
-                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-1" th:text="${establecimiento.nombre}">Nombre del Establecimiento</h6>
-                                    <small th:text="${establecimiento.direccion}">Dirección</small>
-                                </div>
-                                <span th:if="${establecimiento.activo}" class="badge bg-success rounded-pill">Activo</span>
-                                <span th:unless="${establecimiento.activo}" class="badge bg-danger rounded-pill">Inactivo</span>
-                            </a>
-                        </div>
-                        
-                        <div th:if="${#lists.isEmpty(establecimientos)}" class="alert alert-warning mt-3">
-                            No tienes establecimientos registrados. Debes crear un establecimiento primero.
-                        </div>
+                        <p>¿Estás seguro de que deseas eliminar el servicio <strong id="nombreServicioEliminar"></strong>?</p>
+                        <p class="text-danger">Esta acción no se puede deshacer.</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <a th:if="${#lists.isEmpty(establecimientos)}" th:href="@{/proadmin/establecimientos/nuevo}" class="btn btn-primary">
-                            <i class="fas fa-plus me-1"></i> Crear Establecimiento
-                        </a>
+                        <form id="formEliminarServicio" th:action="@{/proadmin/gestionar-servicios/{id}/eliminar(id='__ID__')}" method="post" style="display: inline;">
+                            <input type="hidden" name="establecimientoId" th:value="${establecimientoIdSeleccionado}">
+                            <button type="submit" class="btn btn-danger">Eliminar</button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -173,80 +252,130 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script th:src="@{/js/proadmin.js}"></script>
     <script th:src="@{/js/modo-oscuro-proadmin.js}"></script>
-    <script>
+    <script th:src="@{/js/servicios.js}"></script>
+    <script th:inline="javascript">
+        // Función para cambiar establecimiento
+        function cambiarEstablecimiento() {
+            const selector = document.getElementById('selectorEstablecimiento');
+            const establecimientoId = selector.value;
+            
+            if (establecimientoId) {
+                window.location.href = `/proadmin/servicios?establecimientoId=${establecimientoId}`;
+            }
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
-            // Funcionalidad para filtrar servicios
-            const btnAplicarFiltros = document.getElementById('btnAplicarFiltros');
-            const btnLimpiarFiltros = document.getElementById('btnLimpiarFiltros');
-            
-            btnAplicarFiltros.addEventListener('click', filtrarServicios);
-            btnLimpiarFiltros.addEventListener('click', limpiarFiltros);
-            
-            function filtrarServicios() {
-                const establecimientoId = document.getElementById('filtroEstablecimiento').value;
-                const categoria = document.getElementById('filtroCategoria').value;
-                const busqueda = document.getElementById('filtroBusqueda').value.toLowerCase();
-                
-                // Filtrar por establecimiento
-                const cardsEstablecimientos = document.querySelectorAll('.card-establecimiento');
-                cardsEstablecimientos.forEach(card => {
-                    const idEstablecimiento = card.querySelector('a[href*="/establecimientos/"]').getAttribute('href').split('/').slice(-2)[0];
+            // Configurar modal para editar servicio
+            document.querySelectorAll('.btn-editar-servicio').forEach(boton => {
+                boton.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const nombre = this.getAttribute('data-nombre');
+                    const descripcion = this.getAttribute('data-descripcion');
+                    const duracion = this.getAttribute('data-duracion');
+                    const precio = this.getAttribute('data-precio');
+                    const categoria = this.getAttribute('data-categoria');
+                    const disponible = this.getAttribute('data-disponible') === 'true';
                     
-                    if (establecimientoId === 'todos' || establecimientoId === idEstablecimiento) {
-                        card.style.display = '';
-                        
-                        // Filtrar servicios dentro de este establecimiento
-                        const filas = card.querySelectorAll('tbody tr');
-                        let serviciosVisibles = 0;
-                        
-                        filas.forEach(fila => {
-                            const nombre = fila.cells[0].textContent.toLowerCase();
-                            const descripcion = fila.cells[1].textContent.toLowerCase();
-                            const categoriaServicio = fila.cells[4].getAttribute('data-categoria');
-                            
-                            const matchTexto = nombre.includes(busqueda) || descripcion.includes(busqueda);
-                            const matchCategoria = categoria === 'todas' || categoriaServicio === categoria;
-                            
-                            if (matchTexto && matchCategoria) {
-                                fila.style.display = '';
-                                serviciosVisibles++;
-                            } else {
-                                fila.style.display = 'none';
-                            }
-                        });
-                        
-                        // Mostrar/ocultar mensaje de "No hay servicios" si aplica
-                        const mensajeNoServicios = card.querySelector('.alert-info');
-                        if (mensajeNoServicios) {
-                            mensajeNoServicios.style.display = serviciosVisibles === 0 ? '' : 'none';
-                        }
-                    } else {
-                        card.style.display = 'none';
-                    }
+                    // Cambiar título del modal
+                    document.getElementById('tituloModalServicio').textContent = 'Editar Servicio';
+                    
+                    // Llenar formulario
+                    document.getElementById('servicioId').value = id;
+                    document.getElementById('nombre').value = nombre;
+                    document.getElementById('descripcion').value = descripcion;
+                    document.getElementById('duracionMinutos').value = duracion;
+                    document.getElementById('precio').value = precio;
+                    document.getElementById('categoria').value = categoria;
+                    document.getElementById('estaDisponible').checked = disponible;
+                    
+                    // Cambiar acción del formulario
+                    document.getElementById('formServicio').action = `/proadmin/gestionar-servicios/${id}/editar`;
+                    
+                    // Mostrar modal
+                    new bootstrap.Modal(document.getElementById('modalNuevoServicio')).show();
                 });
-            }
+            });
             
-            function limpiarFiltros() {
-                document.getElementById('filtroEstablecimiento').value = 'todos';
-                document.getElementById('filtroCategoria').value = 'todas';
-                document.getElementById('filtroBusqueda').value = '';
-                
-                const cardsEstablecimientos = document.querySelectorAll('.card-establecimiento');
-                cardsEstablecimientos.forEach(card => {
-                    card.style.display = '';
+            // Configurar modal para eliminar servicio
+            document.querySelectorAll('.btn-eliminar-servicio').forEach(boton => {
+                boton.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const nombre = this.getAttribute('data-nombre');
                     
-                    const filas = card.querySelectorAll('tbody tr');
+                    document.getElementById('nombreServicioEliminar').textContent = nombre;
+                    
+                    // Actualizar acción del formulario
+                    const form = document.getElementById('formEliminarServicio');
+                    form.action = `/proadmin/gestionar-servicios/${id}/eliminar`;
+                    
+                    // Mostrar modal
+                    new bootstrap.Modal(document.getElementById('modalEliminarServicio')).show();
+                });
+            });
+            
+            // Limpiar modal cuando se abre para nuevo servicio
+            document.getElementById('modalNuevoServicio').addEventListener('hidden.bs.modal', function() {
+                // Resetear formulario para nuevo servicio
+                document.getElementById('tituloModalServicio').textContent = 'Nuevo Servicio';
+                document.getElementById('formServicio').action = '/proadmin/gestionar-servicios/nuevo';
+                document.getElementById('servicioId').value = '';
+                document.getElementById('formServicio').reset();
+                document.getElementById('estaDisponible').checked = true;
+                document.getElementById('duracionMinutos').value = '30';
+            });
+            
+            // Funcionalidad de búsqueda y filtros
+            const buscarInput = document.getElementById('buscarServicio');
+            const filtroCategoria = document.getElementById('filtroCategoria');
+            const tabla = document.getElementById('tablaServicios');
+            
+            if (buscarInput && filtroCategoria && tabla) {
+                function filtrarServicios() {
+                    const textoBusqueda = buscarInput.value.toLowerCase();
+                    const categoriaSeleccionada = filtroCategoria.value;
+                    const filas = tabla.querySelectorAll('tbody tr');
+                    
                     filas.forEach(fila => {
-                        fila.style.display = '';
+                        const nombre = fila.cells[0].textContent.toLowerCase();
+                        const descripcion = fila.cells[1].textContent.toLowerCase();
+                        const categoria = fila.cells[4].textContent;
+                        
+                        const coincideTexto = nombre.includes(textoBusqueda) || descripcion.includes(textoBusqueda);
+                        const coincideCategoria = !categoriaSeleccionada || categoria === categoriaSeleccionada;
+                        
+                        fila.style.display = coincideTexto && coincideCategoria ? '' : 'none';
                     });
-                    
-                    const mensajeNoServicios = card.querySelector('.alert-info');
-                    if (mensajeNoServicios) {
-                        const hayServicios = card.querySelectorAll('tbody tr').length > 0;
-                        mensajeNoServicios.style.display = hayServicios ? 'none' : '';
-                    }
-                });
+                }
+                
+                buscarInput.addEventListener('input', filtrarServicios);
+                filtroCategoria.addEventListener('change', filtrarServicios);
             }
+            
+            // Validación del formulario
+            document.getElementById('formServicio').addEventListener('submit', function(e) {
+                const nombre = document.getElementById('nombre').value.trim();
+                const categoria = document.getElementById('categoria').value;
+                const duracion = document.getElementById('duracionMinutos').value;
+                const precio = document.getElementById('precio').value;
+                
+                if (!nombre || !categoria || !duracion || !precio) {
+                    e.preventDefault();
+                    alert('Por favor, completa todos los campos requeridos.');
+                    return false;
+                }
+                
+                if (parseFloat(precio) <= 0) {
+                    e.preventDefault();
+                    alert('El precio debe ser mayor a 0.');
+                    return false;
+                }
+                
+                if (parseInt(duracion) < 5) {
+                    e.preventDefault();
+                    alert('La duración mínima es de 5 minutos.');
+                    return false;
+                }
+            });
         });
     </script>
 </body>

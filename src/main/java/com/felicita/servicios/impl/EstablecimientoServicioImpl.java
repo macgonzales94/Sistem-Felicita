@@ -63,76 +63,6 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
     }
 
     @Override
-    @Transactional
-    public EstablecimientoDTO crearBarberia(EstablecimientoDTO barberiaDTO) {
-        ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
-
-        Barberia barberia = new Barberia();
-        barberia.setNombre(barberiaDTO.getNombre());
-        barberia.setDescripcion(barberiaDTO.getDescripcion());
-        barberia.setDireccion(barberiaDTO.getDireccion());
-        barberia.setCiudad(barberiaDTO.getCiudad());
-        barberia.setCodigoPostal(barberiaDTO.getCodigoPostal());
-        barberia.setTelefono(barberiaDTO.getTelefono());
-        barberia.setEmail(barberiaDTO.getEmail());
-        barberia.setSitioWeb(barberiaDTO.getSitioWeb());
-        barberia.setHorariosAtencion(barberiaDTO.getHorariosAtencion());
-        barberia.setImagenUrl(barberiaDTO.getImagenUrl());
-        barberia.setEstaActivo(true);
-        barberia.setProAdmin(proAdmin);
-
-        // Campos específicos de Barbería
-        barberia.setEspecialidadCortes(barberiaDTO.getEspecialidadCortes());
-        barberia.setTieneServiciosBarba(barberiaDTO.isTieneServiciosBarba());
-        barberia.setTieneServiciosFaciales(barberiaDTO.isTieneServiciosFaciales());
-        barberia.setEstiloBarberia(barberiaDTO.getEstiloBarberia());
-        barberia.setAforoMaximo(barberiaDTO.getAforoMaximo());
-
-        // Agregar características
-        if (barberiaDTO.getCaracteristicas() != null) {
-            barberia.setCaracteristicas(barberiaDTO.getCaracteristicas());
-        }
-
-        Barberia guardada = barberiaRepositorio.save(barberia);
-        return convertirADTO(guardada);
-    }
-
-    @Override
-    @Transactional
-    public EstablecimientoDTO crearSalonBelleza(EstablecimientoDTO salonDTO) {
-        ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
-
-        SalonBelleza salon = new SalonBelleza();
-        salon.setNombre(salonDTO.getNombre());
-        salon.setDescripcion(salonDTO.getDescripcion());
-        salon.setDireccion(salonDTO.getDireccion());
-        salon.setCiudad(salonDTO.getCiudad());
-        salon.setCodigoPostal(salonDTO.getCodigoPostal());
-        salon.setTelefono(salonDTO.getTelefono());
-        salon.setEmail(salonDTO.getEmail());
-        salon.setSitioWeb(salonDTO.getSitioWeb());
-        salon.setHorariosAtencion(salonDTO.getHorariosAtencion());
-        salon.setImagenUrl(salonDTO.getImagenUrl());
-        salon.setEstaActivo(true);
-        salon.setProAdmin(proAdmin);
-
-        // Campos específicos de Salón de Belleza
-        salon.setEspecialidad(salonDTO.getEspecialidad());
-        salon.setTieneServiciosMaquillaje(salonDTO.isTieneServiciosMaquillaje());
-        salon.setTieneServiciosUnas(salonDTO.isTieneServiciosUnas());
-        salon.setTieneTratamientosCapilares(salonDTO.isTieneTratamientosCapilares());
-        salon.setAforoMaximo(salonDTO.getAforoMaximo());
-
-        // Agregar características
-        if (salonDTO.getCaracteristicas() != null) {
-            salon.setCaracteristicas(salonDTO.getCaracteristicas());
-        }
-
-        SalonBelleza guardado = salonBellezaRepositorio.save(salon);
-        return convertirADTO(guardado);
-    }
-
-    @Override
     @Transactional(readOnly = true)
     public EstablecimientoDTO obtenerEstablecimientoPorId(Long id) {
         Establecimiento establecimiento = establecimientoRepositorio.findById(id)
@@ -178,76 +108,6 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
         } else {
             throw new EstablecimientoExcepcion("Tipo de establecimiento no reconocido");
         }
-    }
-
-    @Override
-    @Transactional
-    public EstablecimientoDTO actualizarBarberia(Long id, EstablecimientoDTO barberiaDTO) {
-        Barberia barberia = barberiaRepositorio.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoExcepcion("Barbería no encontrada con ID: " + id));
-
-        // Verificar que la barbería pertenece al proAdmin autenticado
-        ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
-        if (!barberia.getProAdmin().getId().equals(proAdmin.getId())) {
-            throw new EstablecimientoExcepcion("No tienes permiso para modificar esta barbería");
-        }
-
-        // Actualizar campos generales
-        barberia.setNombre(barberiaDTO.getNombre());
-        barberia.setDescripcion(barberiaDTO.getDescripcion());
-        barberia.setDireccion(barberiaDTO.getDireccion());
-        barberia.setCiudad(barberiaDTO.getCiudad());
-        barberia.setCodigoPostal(barberiaDTO.getCodigoPostal());
-        barberia.setTelefono(barberiaDTO.getTelefono());
-        barberia.setEmail(barberiaDTO.getEmail());
-        barberia.setSitioWeb(barberiaDTO.getSitioWeb());
-        barberia.setHorariosAtencion(barberiaDTO.getHorariosAtencion());
-        barberia.setEstaActivo(barberiaDTO.isEstaActivo());
-
-        // Actualizar campos específicos de Barbería
-        barberia.setEspecialidadCortes(barberiaDTO.getEspecialidadCortes());
-        barberia.setTieneServiciosBarba(barberiaDTO.isTieneServiciosBarba());
-        barberia.setTieneServiciosFaciales(barberiaDTO.isTieneServiciosFaciales());
-        barberia.setEstiloBarberia(barberiaDTO.getEstiloBarberia());
-        barberia.setAforoMaximo(barberiaDTO.getAforoMaximo());
-
-        Barberia actualizada = barberiaRepositorio.save(barberia);
-        return convertirADTO(actualizada);
-    }
-
-    @Override
-    @Transactional
-    public EstablecimientoDTO actualizarSalonBelleza(Long id, EstablecimientoDTO salonDTO) {
-        SalonBelleza salon = salonBellezaRepositorio.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoExcepcion("Salón de belleza no encontrado con ID: " + id));
-
-        // Verificar que el salón pertenece al proAdmin autenticado
-        ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
-        if (!salon.getProAdmin().getId().equals(proAdmin.getId())) {
-            throw new EstablecimientoExcepcion("No tienes permiso para modificar este salón de belleza");
-        }
-
-        // Actualizar campos generales
-        salon.setNombre(salonDTO.getNombre());
-        salon.setDescripcion(salonDTO.getDescripcion());
-        salon.setDireccion(salonDTO.getDireccion());
-        salon.setCiudad(salonDTO.getCiudad());
-        salon.setCodigoPostal(salonDTO.getCodigoPostal());
-        salon.setTelefono(salonDTO.getTelefono());
-        salon.setEmail(salonDTO.getEmail());
-        salon.setSitioWeb(salonDTO.getSitioWeb());
-        salon.setHorariosAtencion(salonDTO.getHorariosAtencion());
-        salon.setEstaActivo(salonDTO.isEstaActivo());
-
-        // Actualizar campos específicos de Salón de Belleza
-        salon.setEspecialidad(salonDTO.getEspecialidad());
-        salon.setTieneServiciosMaquillaje(salonDTO.isTieneServiciosMaquillaje());
-        salon.setTieneServiciosUnas(salonDTO.isTieneServiciosUnas());
-        salon.setTieneTratamientosCapilares(salonDTO.isTieneTratamientosCapilares());
-        salon.setAforoMaximo(salonDTO.getAforoMaximo());
-
-        SalonBelleza actualizado = salonBellezaRepositorio.save(salon);
-        return convertirADTO(actualizado);
     }
 
     @Override
@@ -344,7 +204,205 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
         establecimientoRepositorio.save(establecimiento);
     }
 
-    // Método para convertir entidad a DTO
+    // Método corregido para crearBarberia
+    @Override
+    @Transactional
+    public EstablecimientoDTO crearBarberia(EstablecimientoDTO barberiaDTO) {
+        ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
+
+        Barberia barberia = new Barberia();
+
+        // Campos básicos
+        barberia.setNombre(barberiaDTO.getNombre());
+        barberia.setDescripcion(barberiaDTO.getDescripcion());
+        barberia.setDireccion(barberiaDTO.getDireccion());
+        barberia.setCiudad(barberiaDTO.getCiudad());
+        barberia.setCodigoPostal(barberiaDTO.getCodigoPostal());
+        barberia.setTelefono(barberiaDTO.getTelefono());
+        barberia.setEmail(barberiaDTO.getEmail());
+        barberia.setSitioWeb(barberiaDTO.getSitioWeb());
+        barberia.setHorariosAtencion(barberiaDTO.getHorariosAtencion());
+        barberia.setImagenUrl(barberiaDTO.getImagenUrl());
+        barberia.setEstaActivo(barberiaDTO.isEstaActivo());
+        barberia.setProAdmin(proAdmin);
+
+        // ===== CAMPOS NUEVOS AGREGADOS =====
+        barberia.setHoraApertura(barberiaDTO.getHoraApertura() != null ? barberiaDTO.getHoraApertura() : "09:00");
+        barberia.setHoraCierre(barberiaDTO.getHoraCierre() != null ? barberiaDTO.getHoraCierre() : "18:00");
+        barberia.setDuracionCitaDefecto(
+                barberiaDTO.getDuracionCitaDefecto() != null ? barberiaDTO.getDuracionCitaDefecto() : 30);
+        barberia.setIntervalosCitas(barberiaDTO.getIntervalosCitas() != null ? barberiaDTO.getIntervalosCitas() : 15);
+        barberia.setReferencias(barberiaDTO.getReferencias());
+
+        // Días de atención
+        if (barberiaDTO.getDiasAtencion() != null && !barberiaDTO.getDiasAtencion().isEmpty()) {
+            barberia.setDiasAtencion(new HashSet<>(barberiaDTO.getDiasAtencion()));
+        }
+
+        // Campos específicos de Barbería
+        barberia.setEspecialidadCortes(barberiaDTO.getEspecialidadCortes());
+        barberia.setTieneServiciosBarba(barberiaDTO.isTieneServiciosBarba());
+        barberia.setTieneServiciosFaciales(barberiaDTO.isTieneServiciosFaciales());
+        barberia.setEstiloBarberia(barberiaDTO.getEstiloBarberia());
+        barberia.setAforoMaximo(barberiaDTO.getAforoMaximo());
+
+        // Agregar características
+        if (barberiaDTO.getCaracteristicas() != null) {
+            barberia.setCaracteristicas(new HashSet<>(barberiaDTO.getCaracteristicas()));
+        }
+
+        Barberia guardada = barberiaRepositorio.save(barberia);
+        return convertirADTO(guardada);
+    }
+
+    // Método corregido para crearSalonBelleza
+    @Override
+    @Transactional
+    public EstablecimientoDTO crearSalonBelleza(EstablecimientoDTO salonDTO) {
+        ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
+
+        SalonBelleza salon = new SalonBelleza();
+
+        // Campos básicos
+        salon.setNombre(salonDTO.getNombre());
+        salon.setDescripcion(salonDTO.getDescripcion());
+        salon.setDireccion(salonDTO.getDireccion());
+        salon.setCiudad(salonDTO.getCiudad());
+        salon.setCodigoPostal(salonDTO.getCodigoPostal());
+        salon.setTelefono(salonDTO.getTelefono());
+        salon.setEmail(salonDTO.getEmail());
+        salon.setSitioWeb(salonDTO.getSitioWeb());
+        salon.setHorariosAtencion(salonDTO.getHorariosAtencion());
+        salon.setImagenUrl(salonDTO.getImagenUrl());
+        salon.setEstaActivo(salonDTO.isEstaActivo());
+        salon.setProAdmin(proAdmin);
+
+        // ===== CAMPOS NUEVOS AGREGADOS =====
+        salon.setHoraApertura(salonDTO.getHoraApertura() != null ? salonDTO.getHoraApertura() : "09:00");
+        salon.setHoraCierre(salonDTO.getHoraCierre() != null ? salonDTO.getHoraCierre() : "18:00");
+        salon.setDuracionCitaDefecto(
+                salonDTO.getDuracionCitaDefecto() != null ? salonDTO.getDuracionCitaDefecto() : 30);
+        salon.setIntervalosCitas(salonDTO.getIntervalosCitas() != null ? salonDTO.getIntervalosCitas() : 15);
+        salon.setReferencias(salonDTO.getReferencias());
+
+        // Días de atención
+        if (salonDTO.getDiasAtencion() != null && !salonDTO.getDiasAtencion().isEmpty()) {
+            salon.setDiasAtencion(new HashSet<>(salonDTO.getDiasAtencion()));
+        }
+
+        // Campos específicos de Salón de Belleza
+        salon.setEspecialidad(salonDTO.getEspecialidad());
+        salon.setTieneServiciosMaquillaje(salonDTO.isTieneServiciosMaquillaje());
+        salon.setTieneServiciosUnas(salonDTO.isTieneServiciosUnas());
+        salon.setTieneTratamientosCapilares(salonDTO.isTieneTratamientosCapilares());
+        salon.setAforoMaximo(salonDTO.getAforoMaximo());
+
+        // Agregar características
+        if (salonDTO.getCaracteristicas() != null) {
+            salon.setCaracteristicas(new HashSet<>(salonDTO.getCaracteristicas()));
+        }
+
+        SalonBelleza guardado = salonBellezaRepositorio.save(salon);
+        return convertirADTO(guardado);
+    }
+
+    // Método corregido para actualizarBarberia
+    @Override
+    @Transactional
+    public EstablecimientoDTO actualizarBarberia(Long id, EstablecimientoDTO barberiaDTO) {
+        Barberia barberia = barberiaRepositorio.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoExcepcion("Barbería no encontrada con ID: " + id));
+
+        // Verificar que la barbería pertenece al proAdmin autenticado
+        ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
+        if (!barberia.getProAdmin().getId().equals(proAdmin.getId())) {
+            throw new EstablecimientoExcepcion("No tienes permiso para modificar esta barbería");
+        }
+
+        // Actualizar campos generales
+        barberia.setNombre(barberiaDTO.getNombre());
+        barberia.setDescripcion(barberiaDTO.getDescripcion());
+        barberia.setDireccion(barberiaDTO.getDireccion());
+        barberia.setCiudad(barberiaDTO.getCiudad());
+        barberia.setCodigoPostal(barberiaDTO.getCodigoPostal());
+        barberia.setTelefono(barberiaDTO.getTelefono());
+        barberia.setEmail(barberiaDTO.getEmail());
+        barberia.setSitioWeb(barberiaDTO.getSitioWeb());
+        barberia.setHorariosAtencion(barberiaDTO.getHorariosAtencion());
+        barberia.setEstaActivo(barberiaDTO.isEstaActivo());
+
+        // ===== ACTUALIZAR CAMPOS NUEVOS =====
+        barberia.setHoraApertura(barberiaDTO.getHoraApertura());
+        barberia.setHoraCierre(barberiaDTO.getHoraCierre());
+        barberia.setDuracionCitaDefecto(barberiaDTO.getDuracionCitaDefecto());
+        barberia.setIntervalosCitas(barberiaDTO.getIntervalosCitas());
+        barberia.setReferencias(barberiaDTO.getReferencias());
+
+        // Actualizar días de atención
+        if (barberiaDTO.getDiasAtencion() != null) {
+            barberia.setDiasAtencion(new HashSet<>(barberiaDTO.getDiasAtencion()));
+        }
+
+        // Actualizar campos específicos de Barbería
+        barberia.setEspecialidadCortes(barberiaDTO.getEspecialidadCortes());
+        barberia.setTieneServiciosBarba(barberiaDTO.isTieneServiciosBarba());
+        barberia.setTieneServiciosFaciales(barberiaDTO.isTieneServiciosFaciales());
+        barberia.setEstiloBarberia(barberiaDTO.getEstiloBarberia());
+        barberia.setAforoMaximo(barberiaDTO.getAforoMaximo());
+
+        Barberia actualizada = barberiaRepositorio.save(barberia);
+        return convertirADTO(actualizada);
+    }
+
+    // Método corregido para actualizarSalonBelleza
+    @Override
+    @Transactional
+    public EstablecimientoDTO actualizarSalonBelleza(Long id, EstablecimientoDTO salonDTO) {
+        SalonBelleza salon = salonBellezaRepositorio.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoExcepcion("Salón de belleza no encontrado con ID: " + id));
+
+        // Verificar que el salón pertenece al proAdmin autenticado
+        ProAdmin proAdmin = proAdminServicio.obtenerProAdminEntidadPorUsuarioAutenticado();
+        if (!salon.getProAdmin().getId().equals(proAdmin.getId())) {
+            throw new EstablecimientoExcepcion("No tienes permiso para modificar este salón de belleza");
+        }
+
+        // Actualizar campos generales
+        salon.setNombre(salonDTO.getNombre());
+        salon.setDescripcion(salonDTO.getDescripcion());
+        salon.setDireccion(salonDTO.getDireccion());
+        salon.setCiudad(salonDTO.getCiudad());
+        salon.setCodigoPostal(salonDTO.getCodigoPostal());
+        salon.setTelefono(salonDTO.getTelefono());
+        salon.setEmail(salonDTO.getEmail());
+        salon.setSitioWeb(salonDTO.getSitioWeb());
+        salon.setHorariosAtencion(salonDTO.getHorariosAtencion());
+        salon.setEstaActivo(salonDTO.isEstaActivo());
+
+        // ===== ACTUALIZAR CAMPOS NUEVOS =====
+        salon.setHoraApertura(salonDTO.getHoraApertura());
+        salon.setHoraCierre(salonDTO.getHoraCierre());
+        salon.setDuracionCitaDefecto(salonDTO.getDuracionCitaDefecto());
+        salon.setIntervalosCitas(salonDTO.getIntervalosCitas());
+        salon.setReferencias(salonDTO.getReferencias());
+
+        // Actualizar días de atención
+        if (salonDTO.getDiasAtencion() != null) {
+            salon.setDiasAtencion(new HashSet<>(salonDTO.getDiasAtencion()));
+        }
+
+        // Actualizar campos específicos de Salón de Belleza
+        salon.setEspecialidad(salonDTO.getEspecialidad());
+        salon.setTieneServiciosMaquillaje(salonDTO.isTieneServiciosMaquillaje());
+        salon.setTieneServiciosUnas(salonDTO.isTieneServiciosUnas());
+        salon.setTieneTratamientosCapilares(salonDTO.isTieneTratamientosCapilares());
+        salon.setAforoMaximo(salonDTO.getAforoMaximo());
+
+        SalonBelleza actualizado = salonBellezaRepositorio.save(salon);
+        return convertirADTO(actualizado);
+    }
+
+    // Método de conversión corregido
     private EstablecimientoDTO convertirADTO(Establecimiento establecimiento) {
         EstablecimientoDTO dto = new EstablecimientoDTO();
 
@@ -363,10 +421,10 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
             dto.setImagenUrl(establecimiento.getImagenUrl());
             dto.setFechaRegistro(establecimiento.getFechaRegistro());
             dto.setFechaActualizacion(establecimiento.getFechaActualizacion());
-            dto.setEstaActivo(establecimiento.isEstaActivo()); // Campo principal
+            dto.setEstaActivo(establecimiento.isEstaActivo());
             dto.setProAdminId(establecimiento.getProAdmin().getId());
 
-            // Nuevos campos agregados - con validación null
+            // ===== CAMPOS NUEVOS CORREGIDOS =====
             dto.setHoraApertura(
                     establecimiento.getHoraApertura() != null ? establecimiento.getHoraApertura() : "09:00");
             dto.setHoraCierre(establecimiento.getHoraCierre() != null ? establecimiento.getHoraCierre() : "18:00");
@@ -408,7 +466,6 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
                 dto.setTieneTratamientosCapilares(salon.isTieneTratamientosCapilares());
                 dto.setAforoMaximo(salon.getAforoMaximo());
             } else {
-                // Establecimiento genérico
                 dto.setTipoEstablecimiento("GENERICO");
             }
 
@@ -420,4 +477,5 @@ public class EstablecimientoServicioImpl implements EstablecimientoServicio {
 
         return dto;
     }
+
 }

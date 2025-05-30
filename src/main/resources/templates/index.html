@@ -6,293 +6,1042 @@
     <title>FELICITA - Sistema de Reservas para Barberías y Salones de Belleza</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 100px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(0, 123, 255, 0.1), rgba(102, 126, 234, 0.1));
+            z-index: 1;
+        }
+        
+        .hero .container {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .categoria-card {
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .categoria-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-decoration: none;
+        }
+        
+        .service-card {
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            cursor: pointer;
+            min-height: 300px;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        
+        .service-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(0, 123, 255, 0.1), rgba(102, 126, 234, 0.1));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            transition: all 0.3s ease;
+        }
+        
+        .service-card:hover .service-icon {
+            transform: scale(1.1);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .service-card:hover .service-icon i {
+            color: white !important;
+        }
+        
+        .establishment-card {
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .establishment-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .img-placeholder {
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .img-placeholder::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), transparent);
+        }
+        
+        .img-placeholder i {
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .feature-card {
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-icon i {
+            color: white;
+        }
+        
+        /* Iconos decorativos del hero */
+        .hero-icons {
+            position: relative;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .icon-circle {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            animation: pulse 4s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .icon-circle::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shimmer 3s linear infinite;
+        }
+
+        .icon-circle i {
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+
+        .icon-circle-sm {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: float 4s ease-in-out infinite reverse;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .icon-circle-sm::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+            animation: shimmer 4s linear infinite;
+        }
+
+        .icon-circle-sm i {
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+
+        .icon-circle-xs {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            animation: bounce 3s ease-in-out infinite;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .icon-circle-xs::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            animation: shimmer 5s linear infinite;
+        }
+
+        .icon-circle-xs i {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Animaciones para los iconos del hero */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-15px) rotate(1deg); }
+            66% { transform: translateY(-5px) rotate(-1deg); }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0) scale(1); }
+            40% { transform: translateY(-15px) scale(1.05); }
+            60% { transform: translateY(-8px) scale(1.02); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); }
+            50% { transform: scale(1.05); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15); }
+        }
+
+        /* Carrusel de servicios */
+        .carousel-control-prev,
+        .carousel-control-next {
+            width: 5%;
+            opacity: 0.8;
+        }
+
+        .carousel-control-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .carousel-control-prev:hover .carousel-control-icon,
+        .carousel-control-next:hover .carousel-control-icon {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+        }
+
+        .carousel-indicators {
+            position: static;
+            margin: 0;
+            justify-content: center;
+        }
+
+        .carousel-indicators button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin: 0 4px;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+
+        .carousel-indicators button.active {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+
+        .carousel-inner {
+            overflow: visible;
+        }
+
+        .carousel-item {
+            transition: transform 0.6s ease-in-out;
+        }
+        
+        /* Asegurar que todo el contenido sea visible */
+        .main-content {
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Responsive fixes */
+        @media (max-width: 768px) {
+            .hero {
+                padding: 60px 0;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .hero .lead {
+                font-size: 1rem;
+            }
+            
+            .service-card {
+                min-height: 250px;
+            }
+            
+            .hero-icons {
+                display: none;
+            }
+            
+            .carousel-controls {
+                margin-top: 10px;
+            }
+            
+            .carousel-controls button {
+                width: 35px;
+                height: 35px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .service-card {
+                min-height: 220px;
+            }
+            
+            .service-icon {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .service-icon i {
+                font-size: 1.5rem !important;
+            }
+            
+            .carousel-controls {
+                justify-content: center;
+                margin-top: 15px;
+            }
+            
+            .d-flex.justify-content-between.align-items-center.mb-4 {
+                flex-direction: column;
+                align-items: center !important;
+                text-align: center;
+            }
+            
+            .d-flex.justify-content-between.align-items-center.mb-4 h4 {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Barra de navegación -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" th:href="@{/}">
-                <i class="fas fa-cut me-2"></i>FELICITA
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" th:href="@{/}">Inicio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" th:href="@{/acerca}">Acerca de</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" th:href="@{/contacto}">Contacto</a>
-                    </li>
-                </ul>
-                
-                <!-- Menú de usuario -->
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item" sec:authorize="!isAuthenticated()">
-                        <a class="nav-link" th:href="@{/login}">
-                            <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
-                        </a>
-                    </li>
-                    <li class="nav-item" sec:authorize="!isAuthenticated()">
-                        <a class="nav-link" th:href="@{/registro}">
-                            <i class="fas fa-user-plus me-1"></i> Registrarse
-                        </a>
-                    </li>
+    <div class="main-content">
+        <!-- Barra de navegación -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand" th:href="@{/}">
+                    <i class="fas fa-cut me-2"></i>FELICITA
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" th:href="@{/}">Inicio</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/acerca}">Acerca de</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/contacto}">Contacto</a>
+                        </li>
+                    </ul>
                     
-                    <!-- Dropdown para usuario autenticado -->
-                    <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle me-1"></i> 
-                            <span sec:authentication="name">Usuario</span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li sec:authorize="hasRole('ADMINISTRADOR')">
-                                <a class="dropdown-item" th:href="@{/admin/dashboard}">
-                                    <i class="fas fa-tachometer-alt me-2"></i> Panel de Admin
-                                </a>
-                            </li>
-                            <li sec:authorize="hasRole('PROADMIN')">
-                                <a class="dropdown-item" th:href="@{/proadmin/dashboard}">
-                                    <i class="fas fa-store me-2"></i> Mi Establecimiento
-                                </a>
-                            </li>
-                            <li sec:authorize="hasRole('CLIENTE')">
-                                <a class="dropdown-item" th:href="@{/cliente/inicio}">
-                                    <i class="fas fa-home me-2"></i> Inicio Cliente
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <form th:action="@{/logout}" method="post" class="dropdown-item p-0">
-                                    <button type="submit" class="btn btn-link text-decoration-none text-danger w-100 text-start ps-3">
-                                        <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                    <!-- Menú de usuario -->
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item" sec:authorize="!isAuthenticated()">
+                            <a class="nav-link" th:href="@{/login}">
+                                <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
+                            </a>
+                        </li>
+                        <li class="nav-item" sec:authorize="!isAuthenticated()">
+                            <a class="nav-link" th:href="@{/registro}">
+                                <i class="fas fa-user-plus me-1"></i> Registrarse
+                            </a>
+                        </li>
+                        
+                        <!-- Dropdown para usuario autenticado -->
+                        <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle me-1"></i> 
+                                <span sec:authentication="name">Usuario</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li sec:authorize="hasRole('ADMINISTRADOR')">
+                                    <a class="dropdown-item" th:href="@{/admin/dashboard}">
+                                        <i class="fas fa-tachometer-alt me-2"></i> Panel de Admin
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasRole('PROADMIN')">
+                                    <a class="dropdown-item" th:href="@{/proadmin/dashboard}">
+                                        <i class="fas fa-store me-2"></i> Mi Establecimiento
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasRole('CLIENTE')">
+                                    <a class="dropdown-item" th:href="@{/cliente/inicio}">
+                                        <i class="fas fa-home me-2"></i> Inicio Cliente
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form th:action="@{/logout}" method="post" class="dropdown-item p-0">
+                                        <button type="submit" class="btn btn-link text-decoration-none text-danger w-100 text-start ps-3">
+                                            <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero section -->
+        <section class="hero text-white">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="display-4 fw-bold mb-4">Reserva tu cita de belleza o barbería en segundos</h1>
+                        <p class="lead mb-4">FELICITA te conecta con los mejores salones de belleza y barberías cerca de ti. Encuentra, compara y reserva en cualquier momento, desde cualquier lugar.</p>
+                        
+                        <!-- Estadísticas destacadas -->
+                        <div class="row mb-4" th:if="${estadisticasGenerales != null}">
+                            <div class="col-4 text-center">
+                                <h3 class="text-warning mb-0" th:text="${estadisticasGenerales.totalEstablecimientos ?: 0}">0</h3>
+                                <small>Establecimientos</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <h3 class="text-warning mb-0" th:text="${estadisticasGenerales.totalServicios ?: 0}">0</h3>
+                                <small>Servicios</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <h3 class="text-warning mb-0">4.8</h3>
+                                <small>Valoración</small>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-3 flex-wrap">
+                            <a href="#buscar" class="btn btn-warning btn-lg">
+                                <i class="fas fa-search me-2"></i> Buscar servicios
+                            </a>
+                            <a th:href="@{/registro}" class="btn btn-outline-light btn-lg">
+                                <i class="fas fa-user-plus me-2"></i> Registrarse
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-none d-md-block text-center">
+                        <!-- Iconos decorativos flotantes -->
+                        <div class="hero-icons position-relative">
+                            <div class="icon-circle">
+                                <i class="fas fa-cut fa-3x"></i>
+                            </div>
+                            <div class="d-flex justify-content-center gap-3 mt-3">
+                                <div class="icon-circle-sm">
+                                    <i class="fas fa-razor fa-2x"></i>
+                                </div>
+                                <div class="icon-circle-sm">
+                                    <i class="fas fa-spa fa-2x"></i>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-center gap-2 mt-3">
+                                <div class="icon-circle-xs">
+                                    <i class="fas fa-hand-sparkles"></i>
+                                </div>
+                                <div class="icon-circle-xs">
+                                    <i class="fas fa-palette"></i>
+                                </div>
+                                <div class="icon-circle-xs">
+                                    <i class="fas fa-magic"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección de búsqueda -->
+        <section class="py-5" id="buscar">
+            <div class="container">
+                <h2 class="text-center mb-5">Encuentra tu servicio perfecto</h2>
+                
+                <div class="card shadow">
+                    <div class="card-body p-4">
+                        <form action="#" method="get">
+                            <div class="row g-3">
+                                <div class="col-md-5">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-search"></i>
+                                        </span>
+                                        <input type="text" class="form-control" placeholder="Buscar servicio (corte, manicura, etc.)">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </span>
+                                        <input type="text" class="form-control" placeholder="Ubicación">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="fas fa-search me-2"></i> Buscar
                                     </button>
-                                </form>
-                            </li>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Categorías populares -->
+                <div class="row mt-5">
+                    <div class="col-12 text-center mb-4">
+                        <h3>Categorías populares</h3>
+                    </div>
+                    
+                    <div class="col-6 col-md-3 mb-4">
+                        <a href="#" class="card text-center text-decoration-none categoria-card">
+                            <div class="card-body py-4">
+                                <div class="mb-3">
+                                    <i class="fas fa-cut fa-3x text-primary"></i>
+                                </div>
+                                <h5 class="card-title mb-0">Peluquería</h5>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div class="col-6 col-md-3 mb-4">
+                        <a href="#" class="card text-center text-decoration-none categoria-card">
+                            <div class="card-body py-4">
+                                <div class="mb-3">
+                                    <i class="fas fa-razor fa-3x text-primary"></i>
+                                </div>
+                                <h5 class="card-title mb-0">Barbería</h5>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div class="col-6 col-md-3 mb-4">
+                        <a href="#" class="card text-center text-decoration-none categoria-card">
+                            <div class="card-body py-4">
+                                <div class="mb-3">
+                                    <i class="fas fa-hand-sparkles fa-3x text-primary"></i>
+                                </div>
+                                <h5 class="card-title mb-0">Manicura</h5>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div class="col-6 col-md-3 mb-4">
+                        <a href="#" class="card text-center text-decoration-none categoria-card">
+                            <div class="card-body py-4">
+                                <div class="mb-3">
+                                    <i class="fas fa-spa fa-3x text-primary"></i>
+                                </div>
+                                <h5 class="card-title mb-0">Spa</h5>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección de servicios populares -->
+        <section class="py-5 bg-light">
+            <div class="container">
+                <div class="row mb-5">
+                    <div class="col-12 text-center">
+                        <h2>Servicios más populares</h2>
+                        <p class="text-muted">Descubre los servicios más solicitados en nuestra plataforma</p>
+                    </div>
+                </div>
+                
+                <!-- Verificar si hay servicios -->
+                <div th:if="${serviciosPorCategoria != null and !serviciosPorCategoria.isEmpty()}">
+                    <!-- Iterar por categorías de servicios -->
+                    <div th:each="categoria : ${serviciosPorCategoria}" class="mb-5">
+                        <h4 class="mb-4" th:text="${categoria.key}">Categoría</h4>
+                        <div class="row g-4">
+                            <div th:each="servicio : ${categoria.value}" class="col-xl-3 col-lg-4 col-md-6 mb-3">
+                                <div class="card h-100 shadow-sm service-card">
+                                    <div class="card-body text-center p-4">
+                                        <div class="service-icon mb-3">
+                                            <i th:class="${'fas fa-' + (categoria.key == 'Corte de Cabello' or categoria.key == 'Corte y Barba' or categoria.key == 'Corte y Peinado' ? 'cut' : 
+                                                                       categoria.key == 'Arreglo de Barba' ? 'razor' : 
+                                                                       categoria.key == 'Maquillaje' ? 'palette' : 
+                                                                       categoria.key == 'Manicura' ? 'hand-sparkles' : 
+                                                                       categoria.key == 'Tratamientos' ? 'spa' : 'cut') + ' fa-2x text-primary'}"></i>
+                                        </div>
+                                        <h6 class="card-title mb-2" th:text="${servicio.nombre}">Servicio</h6>
+                                        <p class="card-text small text-muted mb-3" th:text="${#strings.abbreviate(servicio.descripcion ?: 'Servicio profesional de calidad', 70)}">Descripción</p>
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="fw-bold text-primary" th:text="'S/ ' + ${#numbers.formatDecimal(servicio.precio, 1, 2)}">S/ 0.00</span>
+                                            <small class="text-muted" th:text="${servicio.duracionMinutos} + ' min'">30 min</small>
+                                        </div>
+                                        <div class="mt-auto">
+                                            <small class="text-muted d-block text-truncate" th:text="${servicio.establecimientoNombre}">Establecimiento</small>
+                                            <button class="btn btn-sm btn-outline-primary mt-2 w-100" 
+                                                    th:onclick="'window.location.href=\'/cliente/establecimientos/' + ${servicio.establecimientoId} + '\''">
+                                                <i class="fas fa-eye me-1"></i> Ver más
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Mensaje si no hay servicios -->
+                <div th:if="${serviciosPorCategoria == null or serviciosPorCategoria.isEmpty()}" class="text-center py-5">
+                    <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No hay servicios disponibles en este momento</h4>
+                    <p class="text-muted">Los servicios se cargarán cuando haya establecimientos registrados.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección de establecimientos destacados -->
+        <section class="py-5">
+            <div class="container">
+                <div class="row mb-5">
+                    <div class="col-12 text-center">
+                        <h2>Establecimientos destacados</h2>
+                        <p class="text-muted">Los establecimientos mejor valorados por nuestros usuarios</p>
+                    </div>
+                </div>
+                
+                <div th:if="${establecimientosDestacados != null and !establecimientosDestacados.empty}">
+                    <div class="row">
+                        <div th:each="establecimiento : ${establecimientosDestacados}" class="col-lg-4 col-md-6 mb-4">
+                            <div class="card h-100 shadow establishment-card">
+                                <!-- Imagen o placeholder con icono -->
+                                <div class="position-relative" style="height: 200px; overflow: hidden;">
+                                    <img th:if="${establecimiento.imagenUrl != null and !#strings.isEmpty(establecimiento.imagenUrl)}" 
+                                         th:src="${establecimiento.imagenUrl}" 
+                                         class="card-img-top w-100 h-100" alt="Establecimiento" 
+                                         style="object-fit: cover;"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    
+                                    <!-- Placeholder con icono cuando no hay imagen -->
+                                    <div class="img-placeholder" 
+                                         th:style="${establecimiento.imagenUrl != null and !#strings.isEmpty(establecimiento.imagenUrl)} ? 'display: none;' : 'display: flex;'">
+                                        <i th:class="${establecimiento.tipo == 'BARBERIA' ? 'fas fa-cut' : 'fas fa-spa'}"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-body d-flex flex-column">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h5 class="card-title mb-0" th:text="${establecimiento.nombre}">Establecimiento</h5>
+                                        <div class="text-end">
+                                            <div class="text-warning mb-1">
+                                                <span th:each="star : ${#numbers.sequence(1, 5)}" 
+                                                      th:class="${star <= establecimiento.calificacionPromedio ? 'fas fa-star' : 'far fa-star'}"></span>
+                                            </div>
+                                            <small class="text-muted" 
+                                                   th:text="${#numbers.formatDecimal(establecimiento.calificacionPromedio, 1, 1)} + ' (' + ${establecimiento.cantidadResenas} + ')'">4.5 (20)</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="card-text text-muted small flex-grow-1" th:text="${#strings.abbreviate(establecimiento.descripcion ?: 'Establecimiento de calidad con servicios profesionales', 100)}">Descripción</p>
+                                    
+                                    <div class="mb-3">
+                                        <small class="text-muted">
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            <span th:text="${(establecimiento.direccion ?: 'Dirección no disponible') + ', ' + (establecimiento.ciudad ?: 'Ciudad')}">Dirección</span>
+                                        </small>
+                                    </div>
+                                    
+                                    <!-- Estado abierto/cerrado -->
+                                    <div class="mb-3">
+                                        <span th:if="${establecimiento.abierto}" class="badge bg-success">
+                                            <i class="fas fa-circle me-1"></i> Abierto ahora
+                                        </span>
+                                        <span th:unless="${establecimiento.abierto}" class="badge bg-danger">
+                                            <i class="fas fa-circle me-1"></i> Cerrado
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="mt-auto">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted" th:text="${establecimiento.tipo == 'BARBERIA' ? 'Barbería' : 'Salón de Belleza'}">Tipo</small>
+                                            <a th:href="@{/cliente/establecimientos/{id}(id=${establecimiento.id})}" 
+                                               class="btn btn-sm btn-primary">
+                                                <i class="fas fa-eye me-1"></i> Ver más
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <a th:href="@{/cliente/establecimientos}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-store me-2"></i> Ver todos los establecimientos
+                        </a>
+                    </div>
+                </div>
+                
+                <div th:if="${establecimientosDestacados == null or establecimientosDestacados.empty}" class="text-center py-5">
+                    <i class="fas fa-store fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No hay establecimientos disponibles</h4>
+                    <p class="text-muted">Próximamente tendremos establecimientos registrados.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección de características -->
+        <section class="py-5 bg-light">
+            <div class="container">
+                <div class="row text-center mb-5">
+                    <div class="col-12">
+                        <h2>¿Por qué elegir FELICITA?</h2>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 border-0 shadow-sm feature-card">
+                            <div class="card-body text-center p-4">
+                                <div class="feature-icon mb-3">
+                                    <i class="fas fa-calendar-check fa-2x"></i>
+                                </div>
+                                <h4>Reservas sin complicaciones</h4>
+                                <p class="text-muted">Programa citas al instante, sin llamadas ni mensajes. Disponible 24/7 para tu comodidad.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 border-0 shadow-sm feature-card">
+                            <div class="card-body text-center p-4">
+                                <div class="feature-icon mb-3">
+                                    <i class="fas fa-star fa-2x"></i>
+                                </div>
+                                <h4>Descubre los mejores lugares</h4>
+                                <p class="text-muted">Encuentra establecimientos verificados con reseñas y calificaciones reales de otros usuarios.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 border-0 shadow-sm feature-card">
+                            <div class="card-body text-center p-4">
+                                <div class="feature-icon mb-3">
+                                    <i class="fas fa-gift fa-2x"></i>
+                                </div>
+                                <h4>Gift Cards especiales</h4>
+                                <p class="text-muted">Regala experiencias de belleza a tus seres queridos con nuestras gift cards para cualquier establecimiento.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-dark text-white py-5">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-4 mb-4 mb-lg-0">
+                        <h5 class="mb-3">FELICITA</h5>
+                        <p class="text-muted">La plataforma que conecta clientes con los mejores servicios de belleza y barbería.</p>
+                    </div>
+                    <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
+                        <h5 class="mb-3">Enlaces</h5>
+                        <ul class="list-unstyled">
+                            <li><a th:href="@{/}" class="text-decoration-none text-muted">Inicio</a></li>
+                            <li><a th:href="@{/acerca}" class="text-decoration-none text-muted">Acerca de</a></li>
+                            <li><a th:href="@{/contacto}" class="text-decoration-none text-muted">Contacto</a></li>
                         </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Hero section -->
-    <section class="hero bg-dark text-white py-5">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h1 class="display-4 fw-bold mb-4">Reserva tu cita de belleza o barbería en segundos</h1>
-                    <p class="lead mb-4">FELICITA te conecta con los mejores salones de belleza y barberías cerca de ti. Encuentra, compara y reserva en cualquier momento, desde cualquier lugar.</p>
-                    <div class="d-flex gap-3">
-                        <a href="#buscar" class="btn btn-primary btn-lg">
-                            <i class="fas fa-search me-2"></i> Buscar servicios
-                        </a>
-                        <a th:href="@{/registro}" class="btn btn-outline-light btn-lg">
-                            <i class="fas fa-user-plus me-2"></i> Registrarse
-                        </a>
                     </div>
-                </div>
-                <div class="col-md-6 d-none d-md-block">
-                    <img th:src="@{/img/hero-image.jpg}" alt="Felicita" class="img-fluid rounded shadow">
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Sección de búsqueda -->
-    <section class="py-5" id="buscar">
-        <div class="container">
-            <h2 class="text-center mb-5">Encuentra tu servicio perfecto</h2>
-            
-            <div class="card shadow">
-                <div class="card-body p-4">
-                    <form action="#" method="get">
-                        <div class="row g-3">
-                            <div class="col-md-5">
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light">
-                                        <i class="fas fa-search"></i>
-                                    </span>
-                                    <input type="text" class="form-control" placeholder="Buscar servicio (corte, manicura, etc.)">
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                    </span>
-                                    <input type="text" class="form-control" placeholder="Ubicación">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-search me-2"></i> Buscar
-                                </button>
-                            </div>
+                    <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                        <h5 class="mb-3">Recursos</h5>
+                        <ul class="list-unstyled">
+                            <li><a href="#" class="text-decoration-none text-muted">Preguntas frecuentes</a></li>
+                            <li><a href="#" class="text-decoration-none text-muted">Política de privacidad</a></li>
+                            <li><a href="#" class="text-decoration-none text-muted">Términos y condiciones</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <h5 class="mb-3">Síguenos</h5>
+                        <div class="d-flex gap-3 mb-3">
+                            <a href="#" class="text-muted"><i class="fab fa-facebook-f fa-lg"></i></a>
+                            <a href="#" class="text-muted"><i class="fab fa-instagram fa-lg"></i></a>
+                            <a href="#" class="text-muted"><i class="fab fa-twitter fa-lg"></i></a>
+                            <a href="#" class="text-muted"><i class="fab fa-youtube fa-lg"></i></a>
                         </div>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Categorías populares -->
-            <div class="row mt-5">
-                <div class="col-12 text-center mb-4">
-                    <h3>Categorías populares</h3>
-                </div>
-                
-                <div class="col-6 col-md-3 mb-4">
-                    <a href="#" class="card text-center text-decoration-none categoria-card">
-                        <div class="card-body py-4">
-                            <div class="icon-wrapper mb-3">
-                                <i class="fas fa-cut fa-2x text-primary"></i>
-                            </div>
-                            <h5 class="card-title mb-0">Peluquería</h5>
-                        </div>
-                    </a>
-                </div>
-                
-                <div class="col-6 col-md-3 mb-4">
-                    <a href="#" class="card text-center text-decoration-none categoria-card">
-                        <div class="card-body py-4">
-                            <div class="icon-wrapper mb-3">
-                                <i class="fas fa-razor fa-2x text-primary"></i>
-                            </div>
-                            <h5 class="card-title mb-0">Barbería</h5>
-                        </div>
-                    </a>
-                </div>
-                
-                <div class="col-6 col-md-3 mb-4">
-                    <a href="#" class="card text-center text-decoration-none categoria-card">
-                        <div class="card-body py-4">
-                            <div class="icon-wrapper mb-3">
-                                <i class="fas fa-hand-sparkles fa-2x text-primary"></i>
-                            </div>
-                            <h5 class="card-title mb-0">Manicura</h5>
-                        </div>
-                    </a>
-                </div>
-                
-                <div class="col-6 col-md-3 mb-4">
-                    <a href="#" class="card text-center text-decoration-none categoria-card">
-                        <div class="card-body py-4">
-                            <div class="icon-wrapper mb-3">
-                                <i class="fas fa-spa fa-2x text-primary"></i>
-                            </div>
-                            <h5 class="card-title mb-0">Spa</h5>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Sección de características -->
-    <section class="py-5 bg-light">
-        <div class="container">
-            <div class="row text-center mb-5">
-                <div class="col-12">
-                    <h2>¿Por qué elegir FELICITA?</h2>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-body text-center p-4">
-                            <div class="feature-icon mb-3">
-                                <i class="fas fa-calendar-check fa-3x text-primary"></i>
-                            </div>
-                            <h4>Reservas sin complicaciones</h4>
-                            <p class="text-muted">Programa citas al instante, sin llamadas ni mensajes. Disponible 24/7 para tu comodidad.</p>
+                        <div>
+                            <p class="text-muted mb-1">¿Tienes preguntas?</p>
+                            <a href="mailto:info@felicita.com" class="text-decoration-none text-muted">info@felicita.com</a>
                         </div>
                     </div>
                 </div>
-                
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-body text-center p-4">
-                            <div class="feature-icon mb-3">
-                                <i class="fas fa-star fa-3x text-primary"></i>
-                            </div>
-                            <h4>Descubre los mejores lugares</h4>
-                            <p class="text-muted">Encuentra establecimientos verificados con reseñas y calificaciones reales de otros usuarios.</p>
-                        </div>
+                <hr class="my-4">
+                <div class="row">
+                    <div class="col-md-6 text-center text-md-start">
+                        <p class="text-muted mb-0">&copy; 2025 FELICITA. Todos los derechos reservados.</p>
                     </div>
-                </div>
-                
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-body text-center p-4">
-                            <div class="feature-icon mb-3">
-                                <i class="fas fa-gift fa-3x text-primary"></i>
-                            </div>
-                            <h4>Gift Cards especiales</h4>
-                            <p class="text-muted">Regala experiencias de belleza a tus seres queridos con nuestras gift cards para cualquier establecimiento.</p>
-                        </div>
+                    <div class="col-md-6 text-center text-md-end">
+                        <p class="text-muted mb-0">Desarrollado con <i class="fas fa-heart text-danger"></i> por Equipo FELICITA</p>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-dark text-white py-4">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-4 mb-4 mb-lg-0">
-                    <h5 class="mb-3">FELICITA</h5>
-                    <p class="text-muted">La plataforma que conecta clientes con los mejores servicios de belleza y barbería.</p>
-                </div>
-                <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
-                    <h5 class="mb-3">Enlaces</h5>
-                    <ul class="list-unstyled">
-                        <li><a th:href="@{/}" class="text-decoration-none text-muted">Inicio</a></li>
-                        <li><a th:href="@{/acerca}" class="text-decoration-none text-muted">Acerca de</a></li>
-                        <li><a th:href="@{/contacto}" class="text-decoration-none text-muted">Contacto</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
-                    <h5 class="mb-3">Recursos</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#" class="text-decoration-none text-muted">Preguntas frecuentes</a></li>
-                        <li><a href="#" class="text-decoration-none text-muted">Política de privacidad</a></li>
-                        <li><a href="#" class="text-decoration-none text-muted">Términos y condiciones</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <h5 class="mb-3">Síguenos</h5>
-                    <div class="d-flex gap-3">
-                        <a href="#" class="text-muted"><i class="fab fa-facebook-f fa-lg"></i></a>
-                        <a href="#" class="text-muted"><i class="fab fa-instagram fa-lg"></i></a>
-                        <a href="#" class="text-muted"><i class="fab fa-twitter fa-lg"></i></a>
-                        <a href="#" class="text-muted"><i class="fab fa-youtube fa-lg"></i></a>
-                    </div>
-                    <div class="mt-3">
-                        <p class="text-muted mb-1">¿Tienes preguntas?</p>
-                        <a href="mailto:info@felicita.com" class="text-decoration-none text-muted">info@felicita.com</a>
-                    </div>
-                </div>
-            </div>
-            <hr class="my-4">
-            <div class="row">
-                <div class="col-md-6 text-center text-md-start">
-                    <p class="text-muted mb-0">&copy; 2025 FELICITA. Todos los derechos reservados.</p>
-                </div>
-                <div class="col-md-6 text-center text-md-end">
-                    <p class="text-muted mb-0">Desarrollado con <i class="fas fa-heart text-danger"></i> por Equipo FELICITA</p>
-                </div>
-            </div>
-        </div>
-    </footer>
+        </footer>
+    </div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script th:src="@{/js/principal.js}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('FELICITA - Página principal cargada correctamente');
+            
+            // Inicializar tooltips de Bootstrap
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Smooth scrolling para enlaces internos
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+            
+            // Inicializar carrusel único de servicios
+            initSingleServiceCarousel();
+            
+            // Animaciones para las tarjetas de servicios
+            const serviceCards = document.querySelectorAll('.service-card');
+            serviceCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-8px) scale(1.02)';
+                    this.style.zIndex = '10';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                    this.style.zIndex = '1';
+                });
+            });
+            
+            // Animaciones para las tarjetas de establecimientos
+            const establishmentCards = document.querySelectorAll('.establishment-card');
+            establishmentCards.forEach(card => {
+                const img = card.querySelector('.card-img-top, .img-placeholder');
+                
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-10px)';
+                    if (img) {
+                        img.style.transform = 'scale(1.1)';
+                    }
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    if (img) {
+                        img.style.transform = 'scale(1)';
+                    }
+                });
+            });
+            
+            // Mostrar alerta de bienvenida si el usuario está autenticado
+            const isAuthenticated = document.querySelector('[sec\\:authorize="isAuthenticated()"]');
+            if (isAuthenticated) {
+                console.log('Usuario autenticado detectado');
+            }
+            
+            // Log de estadísticas para debugging
+            const totalEstablecimientos = document.querySelector('[th\\:text="${estadisticasGenerales.totalEstablecimientos}"]');
+            const totalServicios = document.querySelector('[th\\:text="${estadisticasGenerales.totalServicios}"]');
+            
+            if (totalEstablecimientos && totalServicios) {
+                console.log('Estadísticas cargadas:', {
+                    establecimientos: totalEstablecimientos.textContent,
+                    servicios: totalServicios.textContent
+                });
+            }
+        });
+        
+        // Función para manejar errores de imágenes
+        function handleImageError(img) {
+            img.style.display = 'none';
+            const placeholder = img.nextElementSibling;
+            if (placeholder && placeholder.classList.contains('img-placeholder')) {
+                placeholder.style.display = 'flex';
+            }
+        }
+        
+        // Función para mostrar alertas
+        function mostrarAlerta(mensaje, tipo = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${tipo} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
+            alertDiv.innerHTML = `
+                ${mensaje}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            // Auto-cerrar después de 5 segundos
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+        
+        // Función para inicializar carrusel único de servicios
+        function initSingleServiceCarousel() {
+            const carousel = document.getElementById('allServicesCarousel');
+            
+            if (carousel) {
+                const carouselInstance = new bootstrap.Carousel(carousel, {
+                    interval: false, // No auto-play
+                    wrap: true
+                });
+                
+                // Agregar soporte para gestos táctiles
+                let startX = 0;
+                let endX = 0;
+                
+                carousel.addEventListener('touchstart', function(e) {
+                    startX = e.touches[0].clientX;
+                });
+                
+                carousel.addEventListener('touchend', function(e) {
+                    endX = e.changedTouches[0].clientX;
+                    
+                    const diffX = startX - endX;
+                    
+                    if (Math.abs(diffX) > 50) { // Mínimo 50px de deslizamiento
+                        if (diffX > 0) {
+                            carouselInstance.next(); // Deslizar izquierda = siguiente
+                        } else {
+                            carouselInstance.prev(); // Deslizar derecha = anterior
+                        }
+                    }
+                });
+            }
+        }
+        const searchForm = document.querySelector('#buscar form');
+        if (searchForm) {
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const servicioInput = this.querySelector('input[placeholder*="servicio"]');
+                const ubicacionInput = this.querySelector('input[placeholder*="ubicación"]');
+                
+                const servicio = servicioInput ? servicioInput.value.trim() : '';
+                const ubicacion = ubicacionInput ? ubicacionInput.value.trim() : '';
+                
+                if (!servicio && !ubicacion) {
+                    mostrarAlerta('Por favor ingresa un servicio o ubicación para buscar', 'warning');
+                    return;
+                }
+                
+                // Construir URL de búsqueda
+                const params = new URLSearchParams();
+                if (servicio) params.append('servicio', servicio);
+                if (ubicacion) params.append('ubicacion', ubicacion);
+                
+                // Redirigir a página de resultados
+                window.location.href = `/cliente/establecimientos?${params.toString()}`;
+            });
+        }
+    </script>
 </body>
 </html>
