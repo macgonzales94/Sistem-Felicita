@@ -421,6 +421,9 @@
                             <a class="nav-link active" th:href="@{/}">Inicio</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" th:href="@{/servicios}">Servicios</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" th:href="@{/acerca}">Acerca de</a>
                         </li>
                         <li class="nav-item">
@@ -503,7 +506,7 @@
                         </div>
                         
                         <div class="d-flex gap-3 flex-wrap">
-                            <a href="#buscar" class="btn btn-warning btn-lg">
+                            <a href="/servicios" class="btn btn-warning btn-lg">
                                 <i class="fas fa-search me-2"></i> Buscar servicios
                             </a>
                             <a th:href="@{/registro}" class="btn btn-outline-light btn-lg">
@@ -549,14 +552,14 @@
                 
                 <div class="card shadow">
                     <div class="card-body p-4">
-                        <form action="#" method="get">
+                        <form id="busquedaForm">
                             <div class="row g-3">
                                 <div class="col-md-5">
                                     <div class="input-group">
                                         <span class="input-group-text bg-light">
                                             <i class="fas fa-search"></i>
                                         </span>
-                                        <input type="text" class="form-control" placeholder="Buscar servicio (corte, manicura, etc.)">
+                                        <input type="text" class="form-control" id="busquedaServicio" placeholder="Buscar servicio (corte, manicura, etc.)">
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -564,7 +567,7 @@
                                         <span class="input-group-text bg-light">
                                             <i class="fas fa-map-marker-alt"></i>
                                         </span>
-                                        <input type="text" class="form-control" placeholder="Ubicación">
+                                        <input type="text" class="form-control" id="ubicacionBusqueda" placeholder="Ubicación">
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -584,7 +587,7 @@
                     </div>
                     
                     <div class="col-6 col-md-3 mb-4">
-                        <a href="#" class="card text-center text-decoration-none categoria-card">
+                        <a href="/servicios?categoria=barberia&subcategoria=corte-cabello" class="card text-center text-decoration-none categoria-card">
                             <div class="card-body py-4">
                                 <div class="mb-3">
                                     <i class="fas fa-cut fa-3x text-primary"></i>
@@ -595,7 +598,7 @@
                     </div>
                     
                     <div class="col-6 col-md-3 mb-4">
-                        <a href="#" class="card text-center text-decoration-none categoria-card">
+                        <a href="/servicios?categoria=barberia" class="card text-center text-decoration-none categoria-card">
                             <div class="card-body py-4">
                                 <div class="mb-3">
                                     <i class="fas fa-razor fa-3x text-primary"></i>
@@ -606,7 +609,7 @@
                     </div>
                     
                     <div class="col-6 col-md-3 mb-4">
-                        <a href="#" class="card text-center text-decoration-none categoria-card">
+                        <a href="/servicios?categoria=belleza&subcategoria=manicure" class="card text-center text-decoration-none categoria-card">
                             <div class="card-body py-4">
                                 <div class="mb-3">
                                     <i class="fas fa-hand-sparkles fa-3x text-primary"></i>
@@ -617,7 +620,7 @@
                     </div>
                     
                     <div class="col-6 col-md-3 mb-4">
-                        <a href="#" class="card text-center text-decoration-none categoria-card">
+                        <a href="/servicios?categoria=belleza&subcategoria=tratamientos-faciales" class="card text-center text-decoration-none categoria-card">
                             <div class="card-body py-4">
                                 <div class="mb-3">
                                     <i class="fas fa-spa fa-3x text-primary"></i>
@@ -665,7 +668,7 @@
                                         <div class="mt-auto">
                                             <small class="text-muted d-block text-truncate" th:text="${servicio.establecimientoNombre}">Establecimiento</small>
                                             <button class="btn btn-sm btn-outline-primary mt-2 w-100" 
-                                                    th:onclick="'window.location.href=\'/cliente/establecimientos/' + ${servicio.establecimientoId} + '\''">
+                                                    onclick="window.location.href='/servicios'">
                                                 <i class="fas fa-eye me-1"></i> Ver más
                                             </button>
                                         </div>
@@ -681,6 +684,9 @@
                     <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
                     <h4 class="text-muted">No hay servicios disponibles en este momento</h4>
                     <p class="text-muted">Los servicios se cargarán cuando haya establecimientos registrados.</p>
+                    <a href="/servicios" class="btn btn-primary mt-3">
+                        <i class="fas fa-search me-2"></i> Explorar Servicios
+                    </a>
                 </div>
             </div>
         </section>
@@ -749,9 +755,8 @@
                                     <div class="mt-auto">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <small class="text-muted" th:text="${establecimiento.tipo == 'BARBERIA' ? 'Barbería' : 'Salón de Belleza'}">Tipo</small>
-                                            <a th:href="@{/cliente/establecimientos/{id}(id=${establecimiento.id})}" 
-                                               class="btn btn-sm btn-primary">
-                                                <i class="fas fa-eye me-1"></i> Ver más
+                                            <a href="/servicios" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-eye me-1"></i> Ver servicios
                                             </a>
                                         </div>
                                     </div>
@@ -761,7 +766,7 @@
                     </div>
                     
                     <div class="text-center mt-4">
-                        <a th:href="@{/cliente/establecimientos}" class="btn btn-outline-primary btn-lg">
+                        <a href="/servicios" class="btn btn-outline-primary btn-lg">
                             <i class="fas fa-store me-2"></i> Ver todos los establecimientos
                         </a>
                     </div>
@@ -771,6 +776,9 @@
                     <i class="fas fa-store fa-3x text-muted mb-3"></i>
                     <h4 class="text-muted">No hay establecimientos disponibles</h4>
                     <p class="text-muted">Próximamente tendremos establecimientos registrados.</p>
+                    <a href="/servicios" class="btn btn-primary mt-3">
+                        <i class="fas fa-search me-2"></i> Explorar Servicios
+                    </a>
                 </div>
             </div>
         </section>
@@ -836,6 +844,7 @@
                         <h5 class="mb-3">Enlaces</h5>
                         <ul class="list-unstyled">
                             <li><a th:href="@{/}" class="text-decoration-none text-muted">Inicio</a></li>
+                            <li><a href="/servicios" class="text-decoration-none text-muted">Servicios</a></li>
                             <li><a th:href="@{/acerca}" class="text-decoration-none text-muted">Acerca de</a></li>
                             <li><a th:href="@{/contacto}" class="text-decoration-none text-muted">Contacto</a></li>
                         </ul>
@@ -843,9 +852,10 @@
                     <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
                         <h5 class="mb-3">Recursos</h5>
                         <ul class="list-unstyled">
-                            <li><a href="#" class="text-decoration-none text-muted">Preguntas frecuentes</a></li>
-                            <li><a href="#" class="text-decoration-none text-muted">Política de privacidad</a></li>
-                            <li><a href="#" class="text-decoration-none text-muted">Términos y condiciones</a></li>
+                            <li><a href="/servicios" class="text-decoration-none text-muted">Explorar Servicios</a></li>
+                            <li><a href="/servicios?categoria=barberia" class="text-decoration-none text-muted">Barbería</a></li>
+                            <li><a href="/servicios?categoria=belleza" class="text-decoration-none text-muted">Salón de Belleza</a></li>
+                            <li><a href="/servicios?categoria=giftcard" class="text-decoration-none text-muted">Gift Cards</a></li>
                         </ul>
                     </div>
                     <div class="col-lg-3 col-md-6">
@@ -900,6 +910,35 @@
                     }
                 });
             });
+            
+            // Manejar el formulario de búsqueda
+            const busquedaForm = document.getElementById('busquedaForm');
+            if (busquedaForm) {
+                busquedaForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const servicio = document.getElementById('busquedaServicio').value.trim();
+                    const ubicacion = document.getElementById('ubicacionBusqueda').value.trim();
+                    
+                    // Construir URL de redirección a servicios
+                    let url = '/servicios';
+                    const params = new URLSearchParams();
+                    
+                    if (servicio) {
+                        params.append('busqueda', servicio);
+                    }
+                    if (ubicacion) {
+                        params.append('ubicacion', ubicacion);
+                    }
+                    
+                    if (params.toString()) {
+                        url += '?' + params.toString();
+                    }
+                    
+                    // Redirigir a la página de servicios
+                    window.location.href = url;
+                });
+            }
             
             // Inicializar carrusel único de servicios
             initSingleServiceCarousel();
@@ -1016,31 +1055,6 @@
                     }
                 });
             }
-        }
-        const searchForm = document.querySelector('#buscar form');
-        if (searchForm) {
-            searchForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const servicioInput = this.querySelector('input[placeholder*="servicio"]');
-                const ubicacionInput = this.querySelector('input[placeholder*="ubicación"]');
-                
-                const servicio = servicioInput ? servicioInput.value.trim() : '';
-                const ubicacion = ubicacionInput ? ubicacionInput.value.trim() : '';
-                
-                if (!servicio && !ubicacion) {
-                    mostrarAlerta('Por favor ingresa un servicio o ubicación para buscar', 'warning');
-                    return;
-                }
-                
-                // Construir URL de búsqueda
-                const params = new URLSearchParams();
-                if (servicio) params.append('servicio', servicio);
-                if (ubicacion) params.append('ubicacion', ubicacion);
-                
-                // Redirigir a página de resultados
-                window.location.href = `/cliente/establecimientos?${params.toString()}`;
-            });
         }
     </script>
 </body>

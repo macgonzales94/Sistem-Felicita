@@ -1,4 +1,3 @@
-
 package com.felicita.configuracion;
 
 import org.springframework.context.annotation.Configuration;
@@ -27,5 +26,16 @@ public class ConfiguracionWeb implements WebMvcConfigurer {
         // Configuración de recursos estáticos
         registry.addResourceHandler("/static/**")
                 .addResourceLocations("classpath:/static/");
+        
+        // Recursos de imágenes para servicios
+        registry.addResourceHandler("/img/**")
+                .addResourceLocations("classpath:/static/img/");
+                
+        // Recursos de CSS y JS
+        registry.addResourceHandler("/css/**")
+                .addResourceLocations("classpath:/static/css/");
+                
+        registry.addResourceHandler("/js/**")
+                .addResourceLocations("classpath:/static/js/");
     }
 }

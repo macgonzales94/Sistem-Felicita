@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicios - FELICITA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/servicios.css}">
+</head>
+<body>
+    <!-- Barra de navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">
+                <i class="fas fa-cut me-2"></i>FELICITA
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/servicios}">Servicios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/acerca}">Acerca de</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/contacto}">Contacto</a>
+                    </li>
+                </ul>
+                
+                <!-- Menú de usuario -->
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link" th:href="@{/login}">
+                            <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link" th:href="@{/registro}">
+                            <i class="fas fa-user-plus me-1"></i> Registrarse
+                        </a>
+                    </li>
+                    
+                    <!-- Dropdown para usuario autenticado -->
+                    <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i> 
+                            <span sec:authentication="name">Usuario</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li sec:authorize="hasRole('ADMINISTRADOR')">
+                                <a class="dropdown-item" th:href="@{/admin/dashboard}">
+                                    <i class="fas fa-tachometer-alt me-2"></i> Panel de Admin
+                                </a>
+                            </li>
+                            <li sec:authorize="hasRole('PROADMIN')">
+                                <a class="dropdown-item" th:href="@{/proadmin/dashboard}">
+                                    <i class="fas fa-store me-2"></i> Mi Establecimiento
+                                </a>
+                            </li>
+                            <li sec:authorize="hasRole('CLIENTE')">
+                                <a class="dropdown-item" th:href="@{/cliente/inicio}">
+                                    <i class="fas fa-home me-2"></i> Inicio Cliente
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post" class="dropdown-item p-0">
+                                    <button type="submit" class="btn btn-link text-decoration-none text-danger w-100 text-start ps-3">
+                                        <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero section para servicios -->
+    <section class="hero-servicios bg-primary text-white py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1 class="display-4 fw-bold mb-3">Nuestros Servicios</h1>
+                    <p class="lead mb-4">Descubre los mejores servicios de belleza y bienestar cerca de ti</p>
+                    
+                    <!-- Barra de búsqueda mejorada -->
+                    <div class="search-container mx-auto" style="max-width: 600px;">
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-white">
+                                <i class="fas fa-search text-primary"></i>
+                            </span>
+                            <input type="text" class="form-control" id="busquedaServicio" 
+                                   placeholder="Buscar servicios, tratamientos, establecimientos...">
+                            <button class="btn btn-outline-light" type="button" id="btnBuscar">
+                                <i class="fas fa-search me-2"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contenido principal -->
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Sidebar de categorías -->
+            <div class="col-lg-3 col-md-4">
+                <div class="sidebar-categorias">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-filter me-2"></i> Categorías
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <!-- Categorías principales -->
+                            <div class="categoria-section">
+                                <h6 class="categoria-titulo" data-bs-toggle="collapse" data-bs-target="#categoriaBarberia">
+                                    <i class="fas fa-cut me-2"></i> Barbería
+                                    <i class="fas fa-chevron-down float-end"></i>
+                                </h6>
+                                <div class="collapse show" id="categoriaBarberia">
+                                    <ul class="lista-subcategorias">
+                                        <li><a href="#" data-categoria="barberia" data-servicio="corte-cabello">Corte de Cabello</a></li>
+                                        <li><a href="#" data-categoria="barberia" data-servicio="arreglo-barba">Arreglo de Barba</a></li>
+                                        <li><a href="#" data-categoria="barberia" data-servicio="corte-barba">Corte y Barba</a></li>
+                                        <li><a href="#" data-categoria="barberia" data-servicio="afeitado-clasico">Afeitado Clásico</a></li>
+                                        <li><a href="#" data-categoria="barberia" data-servicio="tratamientos-capilares">Tratamientos Capilares</a></li>
+                                        <li><a href="#" data-categoria="barberia" data-servicio="servicios-faciales">Servicios Faciales</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="categoria-section">
+                                <h6 class="categoria-titulo" data-bs-toggle="collapse" data-bs-target="#categoriaBelleza">
+                                    <i class="fas fa-spa me-2"></i> Salón de Belleza
+                                    <i class="fas fa-chevron-down float-end"></i>
+                                </h6>
+                                <div class="collapse show" id="categoriaBelleza">
+                                    <ul class="lista-subcategorias">
+                                        <li><a href="#" data-categoria="belleza" data-servicio="corte-peinado">Corte y Peinado</a></li>
+                                        <li><a href="#" data-categoria="belleza" data-servicio="coloracion">Coloración</a></li>
+                                        <li><a href="#" data-categoria="belleza" data-servicio="tratamientos-capilares">Tratamientos Capilares</a></li>
+                                        <li><a href="#" data-categoria="belleza" data-servicio="maquillaje">Maquillaje</a></li>
+                                        <li><a href="#" data-categoria="belleza" data-servicio="manicure">Manicure</a></li>
+                                        <li><a href="#" data-categoria="belleza" data-servicio="pedicure">Pedicure</a></li>
+                                        <li><a href="#" data-categoria="belleza" data-servicio="depilacion">Depilación</a></li>
+                                        <li><a href="#" data-categoria="belleza" data-servicio="tratamientos-faciales">Tratamientos Faciales</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="categoria-section">
+                                <h6 class="categoria-titulo" data-bs-toggle="collapse" data-bs-target="#categoriaGiftCard">
+                                    <i class="fas fa-gift me-2"></i> Gift Cards
+                                    <i class="fas fa-chevron-down float-end"></i>
+                                </h6>
+                                <div class="collapse show" id="categoriaGiftCard">
+                                    <ul class="lista-subcategorias">
+                                        <li><a href="#" data-categoria="giftcard" data-servicio="giftcard-barberia">Gift Card Barbería</a></li>
+                                        <li><a href="#" data-categoria="giftcard" data-servicio="giftcard-belleza">Gift Card Belleza</a></li>
+                                        <li><a href="#" data-categoria="giftcard" data-servicio="giftcard-personalizada">Gift Card Personalizada</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filtros adicionales -->
+                    <div class="card shadow-sm mt-3">
+                        <div class="card-header bg-secondary text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-sliders-h me-2"></i> Filtros
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <!-- Filtro por ubicación -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Ubicación</label>
+                                <select class="form-select" id="filtroUbicacion">
+                                    <option value="">Todas las ubicaciones</option>
+                                    <option value="lima">Lima</option>
+                                    <option value="callao">Callao</option>
+                                    <option value="san-isidro">San Isidro</option>
+                                    <option value="miraflores">Miraflores</option>
+                                </select>
+                            </div>
+
+                            <!-- Filtro por precio -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Rango de Precio</label>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <input type="number" class="form-control" placeholder="Min" id="precioMin">
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="number" class="form-control" placeholder="Max" id="precioMax">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Filtro por calificación -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Calificación mínima</label>
+                                <div class="rating-filter">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="rating" value="4" id="rating4">
+                                        <label class="form-check-label" for="rating4">
+                                            ★★★★☆ y superior
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="rating" value="3" id="rating3">
+                                        <label class="form-check-label" for="rating3">
+                                            ★★★☆☆ y superior
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn btn-primary w-100" id="aplicarFiltros">
+                                <i class="fas fa-filter me-2"></i> Aplicar Filtros
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contenido principal de servicios -->
+            <div class="col-lg-9 col-md-8">
+                <!-- Tabs de servicios principales -->
+                <div class="servicios-tabs mb-4">
+                    <ul class="nav nav-pills nav-fill" id="serviciosTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="todos-tab" data-bs-toggle="pill" data-bs-target="#todos" type="button" role="tab">
+                                <i class="fas fa-th-large me-2"></i> Todos los Servicios
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="barberia-tab" data-bs-toggle="pill" data-bs-target="#barberia" type="button" role="tab">
+                                <i class="fas fa-cut me-2"></i> Barbería
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="belleza-tab" data-bs-toggle="pill" data-bs-target="#belleza" type="button" role="tab">
+                                <i class="fas fa-spa me-2"></i> Belleza
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="giftcard-tab" data-bs-toggle="pill" data-bs-target="#giftcard" type="button" role="tab">
+                                <i class="fas fa-gift me-2"></i> Gift Cards
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Contenido de los tabs -->
+                <div class="tab-content" id="serviciosTabContent">
+                    <!-- Tab de todos los servicios -->
+                    <div class="tab-pane fade show active" id="todos" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4>Todos los Servicios Disponibles</h4>
+                            <div class="d-flex align-items-center">
+                                <span class="me-2">Ordenar por:</span>
+                                <select class="form-select form-select-sm" style="width: auto;" id="ordenarPor">
+                                    <option value="relevancia">Relevancia</option>
+                                    <option value="precio-asc">Precio: Menor a Mayor</option>
+                                    <option value="precio-desc">Precio: Mayor a Menor</option>
+                                    <option value="calificacion">Mejor Calificado</option>
+                                    <option value="distancia">Más Cercano</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Grid de servicios -->
+                        <div class="row" id="serviciosContainer">
+                            <!-- Los servicios se cargarán dinámicamente aquí -->
+                        </div>
+
+                        <!-- Paginación -->
+                        <nav aria-label="Paginación de servicios" class="mt-4">
+                            <ul class="pagination justify-content-center" id="paginacion">
+                                <!-- La paginación se generará dinámicamente -->
+                            </ul>
+                        </nav>
+                    </div>
+
+                    <!-- Otros tabs tendrán contenido similar -->
+                    <div class="tab-pane fade" id="barberia" role="tabpanel">
+                        <!-- Contenido específico de barbería -->
+                    </div>
+
+                    <div class="tab-pane fade" id="belleza" role="tabpanel">
+                        <!-- Contenido específico de belleza -->
+                    </div>
+
+                    <div class="tab-pane fade" id="giftcard" role="tabpanel">
+                        <!-- Contenido específico de gift cards -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Login/Registro -->
+    <div class="modal fade" id="modalAuth" tabindex="-1" aria-labelledby="modalAuthLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalAuthLabel">Acceder a tu cuenta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Tabs de Login/Registro -->
+                    <ul class="nav nav-tabs" id="authTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab">
+                                Iniciar Sesión
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="registro-tab" data-bs-toggle="tab" data-bs-target="#registro" type="button" role="tab">
+                                Registrarse
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content mt-3" id="authTabContent">
+                        <!-- Tab de Login -->
+                        <div class="tab-pane fade show active" id="login" role="tabpanel">
+                            <form id="loginForm">
+                                <div class="mb-3">
+                                    <label for="emailLogin" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="emailLogin" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="passwordLogin" class="form-label">Contraseña</label>
+                                    <input type="password" class="form-control" id="passwordLogin" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
+                            </form>
+                        </div>
+                        
+                        <!-- Tab de Registro -->
+                        <div class="tab-pane fade" id="registro" role="tabpanel">
+                            <form id="registroForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="nombreRegistro" class="form-label">Nombre</label>
+                                        <input type="text" class="form-control" id="nombreRegistro" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="apellidoRegistro" class="form-label">Apellido</label>
+                                        <input type="text" class="form-control" id="apellidoRegistro" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="emailRegistro" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="emailRegistro" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="telefonoRegistro" class="form-label">Teléfono</label>
+                                    <input type="tel" class="form-control" id="telefonoRegistro">
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="passwordRegistro" class="form-label">Contraseña</label>
+                                        <input type="password" class="form-control" id="passwordRegistro" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="confirmarPasswordRegistro" class="form-label">Confirmar Contraseña</label>
+                                        <input type="password" class="form-control" id="confirmarPasswordRegistro" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="tipoUsuario" class="form-label">Tipo de usuario</label>
+                                    <select class="form-select" id="tipoUsuario" required>
+                                        <option value="CLIENTE">Cliente</option>
+                                        <option value="PROADMIN">Propietario de Establecimiento</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100">Registrarse</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Reserva de Cita -->
+    <div class="modal fade" id="modalReserva" tabindex="-1" aria-labelledby="modalReservaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalReservaLabel">Reservar Cita</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="reservaForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="establecimientoSelect" class="form-label">Establecimiento</label>
+                                <select class="form-select" id="establecimientoSelect" required>
+                                    <option value="">Seleccionar establecimiento</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="servicioSelect" class="form-label">Servicio</label>
+                                <select class="form-select" id="servicioSelect" required>
+                                    <option value="">Seleccionar servicio</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="fechaCita" class="form-label">Fecha</label>
+                                <input type="date" class="form-control" id="fechaCita" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="horaCita" class="form-label">Hora</label>
+                                <select class="form-select" id="horaCita" required>
+                                    <option value="">Seleccionar hora</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comentariosCita" class="form-label">Comentarios adicionales</label>
+                            <textarea class="form-control" id="comentariosCita" rows="3" placeholder="Comentarios opcionales sobre la cita"></textarea>
+                        </div>
+                        <div class="resumen-reserva bg-light p-3 rounded mb-3" id="resumenReserva" style="display: none;">
+                            <h6>Resumen de la Reserva</h6>
+                            <p class="mb-1"><strong>Establecimiento:</strong> <span id="resumenEstablecimiento"></span></p>
+                            <p class="mb-1"><strong>Servicio:</strong> <span id="resumenServicio"></span></p>
+                            <p class="mb-1"><strong>Fecha y Hora:</strong> <span id="resumenFechaHora"></span></p>
+                            <p class="mb-0"><strong>Precio:</strong> <span id="resumenPrecio"></span></p>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Confirmar Reserva</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <h5 class="mb-3">FELICITA</h5>
+                    <p class="text-muted">La plataforma que conecta clientes con los mejores servicios de belleza y barbería.</p>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
+                    <h5 class="mb-3">Enlaces</h5>
+                    <ul class="list-unstyled">
+                        <li><a th:href="@{/}" class="text-decoration-none text-muted">Inicio</a></li>
+                        <li><a th:href="@{/servicios}" class="text-decoration-none text-muted">Servicios</a></li>
+                        <li><a th:href="@{/acerca}" class="text-decoration-none text-muted">Acerca de</a></li>
+                        <li><a th:href="@{/contacto}" class="text-decoration-none text-muted">Contacto</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                    <h5 class="mb-3">Recursos</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-decoration-none text-muted">Preguntas frecuentes</a></li>
+                        <li><a href="#" class="text-decoration-none text-muted">Política de privacidad</a></li>
+                        <li><a href="#" class="text-decoration-none text-muted">Términos y condiciones</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="mb-3">Síguenos</h5>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-muted"><i class="fab fa-facebook-f fa-lg"></i></a>
+                        <a href="#" class="text-muted"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#" class="text-muted"><i class="fab fa-twitter fa-lg"></i></a>
+                        <a href="#" class="text-muted"><i class="fab fa-youtube fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="text-muted mb-0">&copy; 2025 FELICITA. Todos los derechos reservados.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="text-muted mb-0">Desarrollado con <i class="fas fa-heart text-danger"></i> por Equipo FELICITA</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/servicios.js}"></script>
+</body>
+</html>
