@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 @Controller
@@ -63,33 +64,76 @@ public class ServiciosControlador {
             @RequestParam(defaultValue = "relevancia") String ordenarPor) {
         
         try {
-            Pageable pageable = crearPageable(page, size, ordenarPor);
+            // Obtener establecimientos según filtros
+            List<EstablecimientoClienteDTO> establecimientos = obtenerEstablecimientosFiltrados(
+                categoria, busqueda, ubicacion, calificacionMin);
             
-            // Obtener establecimientos activos
-            Page<EstablecimientoClienteDTO> establecimientos = 
-                establecimientoClienteServicio.obtenerEstablecimientosActivos(pageable);
+            // Obtener servicios reales de cada establecimiento
+            List<ServicioClienteDTO> todosLosServicios = new ArrayList<>();
+            for (EstablecimientoClienteDTO establecimiento : establecimientos) {
+                try {
+                    List<ServicioClienteDTO> serviciosEst = 
+                        establecimientoClienteServicio.obtenerServiciosDeEstablecimiento(establecimiento.getId());
+                    
+                    // Filtrar servicios disponibles
+                    List<ServicioClienteDTO> serviciosDisponibles = serviciosEst.stream()
+                        .filter(ServicioClienteDTO::isDisponible)
+                        .collect(Collectors.toList());
+                    
+                    todosLosServicios.addAll(serviciosDisponibles);
+                } catch (Exception e) {
+                    System.err.println("Error obteniendo servicios del establecimiento " + establecimiento.getId() + ": " + e.getMessage());
+                    // Continuar con el siguiente establecimiento
+                }
+            }
             
-            // Aplicar filtros
-            List<EstablecimientoClienteDTO> establecimientosFiltrados = 
-                aplicarFiltros(establecimientos.getContent(), categoria, busqueda, ubicacion, 
-                              precioMin, precioMax, calificacionMin);
+            // Aplicar filtros adicionales
+            List<ServicioClienteDTO> serviciosFiltrados = aplicarFiltrosAdicionales(
+                todosLosServicios, precioMin, precioMax, subcategoria);
             
-            // Convertir a servicios
-            List<Map<String, Object>> servicios = convertirAServicios(establecimientosFiltrados);
+            // Ordenar servicios
+            serviciosFiltrados = ordenarServicios(serviciosFiltrados, ordenarPor);
+            
+            // Aplicar paginación manual
+            int inicio = page * size;
+            int fin = Math.min(inicio + size, serviciosFiltrados.size());
+            
+            List<ServicioClienteDTO> serviciosPaginados = new ArrayList<>();
+            if (inicio < serviciosFiltrados.size()) {
+                serviciosPaginados = serviciosFiltrados.subList(inicio, fin);
+            }
+            
+            // Convertir a formato para frontend
+            List<Map<String, Object>> serviciosResponse = serviciosPaginados.stream()
+                .map(this::convertirServicioAMap)
+                .collect(Collectors.toList());
+            
+            // Calcular información de paginación
+            int totalElementos = serviciosFiltrados.size();
+            int totalPaginas = (int) Math.ceil((double) totalElementos / size);
             
             Map<String, Object> response = new HashMap<>();
-            response.put("servicios", servicios);
-            response.put("totalElementos", servicios.size());
-            response.put("totalPaginas", Math.ceil((double) servicios.size() / size));
+            response.put("servicios", serviciosResponse);
+            response.put("totalElementos", totalElementos);
+            response.put("totalPaginas", totalPaginas);
             response.put("paginaActual", page);
             response.put("tamanoPagina", size);
             
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
+            System.err.println("Error en obtenerServicios: " + e.getMessage());
+            e.printStackTrace();
+            
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Error al obtener servicios: " + e.getMessage());
-            return ResponseEntity.badRequest().body(errorResponse);
+            errorResponse.put("servicios", new ArrayList<>());
+            errorResponse.put("totalElementos", 0);
+            errorResponse.put("totalPaginas", 0);
+            errorResponse.put("paginaActual", 0);
+            errorResponse.put("tamanoPagina", size);
+            
+            return ResponseEntity.ok(errorResponse);
         }
     }
 
@@ -115,26 +159,57 @@ public class ServiciosControlador {
                 case "giftcard":
                     // Para gift cards, mostrar todos los establecimientos
                     Pageable pageable = PageRequest.of(0, 100);
-                    establecimientos = establecimientoClienteServicio.obtenerEstablecimientosActivos(pageable).getContent();
+                    Page<EstablecimientoClienteDTO> pageEstablecimientos = 
+                        establecimientoClienteServicio.obtenerEstablecimientosActivos(pageable);
+                    establecimientos = pageEstablecimientos.getContent();
                     break;
                 default:
                     Pageable pageableDefault = PageRequest.of(0, 100);
-                    establecimientos = establecimientoClienteServicio.obtenerEstablecimientosActivos(pageableDefault).getContent();
+                    Page<EstablecimientoClienteDTO> pageDefault = 
+                        establecimientoClienteServicio.obtenerEstablecimientosActivos(pageableDefault);
+                    establecimientos = pageDefault.getContent();
             }
             
-            List<Map<String, Object>> servicios = convertirAServicios(establecimientos);
+            // Obtener servicios reales
+            List<ServicioClienteDTO> todosLosServicios = new ArrayList<>();
+            for (EstablecimientoClienteDTO establecimiento : establecimientos) {
+                try {
+                    List<ServicioClienteDTO> serviciosEst = 
+                        establecimientoClienteServicio.obtenerServiciosDeEstablecimiento(establecimiento.getId());
+                    
+                    // Filtrar por categoría si es necesario
+                    List<ServicioClienteDTO> serviciosFiltrados = serviciosEst.stream()
+                        .filter(ServicioClienteDTO::isDisponible)
+                        .collect(Collectors.toList());
+                    
+                    // Para gift cards, generar gift cards simuladas ya que no hay entidad específica
+                    if ("giftcard".equals(categoria.toLowerCase())) {
+                        serviciosFiltrados = generarGiftCardsParaEstablecimiento(establecimiento);
+                    }
+                    
+                    todosLosServicios.addAll(serviciosFiltrados);
+                } catch (Exception e) {
+                    System.err.println("Error obteniendo servicios del establecimiento " + establecimiento.getId());
+                }
+            }
             
             // Filtrar por subcategoría si se especifica
             if (subcategoria != null && !subcategoria.isEmpty()) {
-                servicios = servicios.stream()
-                    .filter(servicio -> subcategoria.equals(servicio.get("subcategoria")))
+                todosLosServicios = todosLosServicios.stream()
+                    .filter(servicio -> subcategoria.equals(servicio.getCategoria()))
                     .collect(Collectors.toList());
             }
             
-            return ResponseEntity.ok(servicios);
+            List<Map<String, Object>> serviciosResponse = todosLosServicios.stream()
+                .map(this::convertirServicioAMap)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(serviciosResponse);
             
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            System.err.println("Error en obtenerServiciosPorCategoria: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok(new ArrayList<>());
         }
     }
 
@@ -156,21 +231,38 @@ public class ServiciosControlador {
                 establecimientos = establecimientoClienteServicio.buscarPorNombre(termino);
             }
             
-            List<Map<String, Object>> servicios = convertirAServicios(establecimientos);
+            // Obtener servicios reales
+            List<ServicioClienteDTO> todosLosServicios = new ArrayList<>();
+            for (EstablecimientoClienteDTO establecimiento : establecimientos) {
+                try {
+                    List<ServicioClienteDTO> serviciosEst = 
+                        establecimientoClienteServicio.obtenerServiciosDeEstablecimiento(establecimiento.getId());
+                    todosLosServicios.addAll(serviciosEst);
+                } catch (Exception e) {
+                    System.err.println("Error obteniendo servicios para búsqueda del establecimiento " + establecimiento.getId());
+                }
+            }
             
             // Filtrar servicios por término de búsqueda
-            servicios = servicios.stream()
+            List<ServicioClienteDTO> serviciosFiltrados = todosLosServicios.stream()
                 .filter(servicio -> 
-                    servicio.get("nombre").toString().toLowerCase().contains(termino.toLowerCase()) ||
-                    servicio.get("descripcion").toString().toLowerCase().contains(termino.toLowerCase()) ||
-                    servicio.get("establecimiento").toString().toLowerCase().contains(termino.toLowerCase())
+                    servicio.getNombre().toLowerCase().contains(termino.toLowerCase()) ||
+                    (servicio.getDescripcion() != null && servicio.getDescripcion().toLowerCase().contains(termino.toLowerCase())) ||
+                    servicio.getEstablecimientoNombre().toLowerCase().contains(termino.toLowerCase())
                 )
+                .filter(ServicioClienteDTO::isDisponible)
                 .collect(Collectors.toList());
             
-            return ResponseEntity.ok(servicios);
+            List<Map<String, Object>> serviciosResponse = serviciosFiltrados.stream()
+                .map(this::convertirServicioAMap)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(serviciosResponse);
             
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            System.err.println("Error en buscarServicios: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok(new ArrayList<>());
         }
     }
 
@@ -195,11 +287,15 @@ public class ServiciosControlador {
                         break;
                     default:
                         Pageable pageable = PageRequest.of(0, 100);
-                        establecimientos = establecimientoClienteServicio.obtenerEstablecimientosActivos(pageable).getContent();
+                        Page<EstablecimientoClienteDTO> pageEstablecimientos = 
+                            establecimientoClienteServicio.obtenerEstablecimientosActivos(pageable);
+                        establecimientos = pageEstablecimientos.getContent();
                 }
             } else {
                 Pageable pageable = PageRequest.of(0, 100);
-                establecimientos = establecimientoClienteServicio.obtenerEstablecimientosActivos(pageable).getContent();
+                Page<EstablecimientoClienteDTO> pageEstablecimientos = 
+                    establecimientoClienteServicio.obtenerEstablecimientosActivos(pageable);
+                establecimientos = pageEstablecimientos.getContent();
             }
             
             List<Map<String, Object>> resultado = establecimientos.stream()
@@ -216,7 +312,9 @@ public class ServiciosControlador {
             return ResponseEntity.ok(resultado);
             
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            System.err.println("Error en obtenerEstablecimientos: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok(new ArrayList<>());
         }
     }
 
@@ -232,6 +330,7 @@ public class ServiciosControlador {
                 establecimientoClienteServicio.obtenerServiciosDeEstablecimiento(id);
             
             List<Map<String, Object>> resultado = servicios.stream()
+                .filter(ServicioClienteDTO::isDisponible)
                 .map(servicio -> {
                     Map<String, Object> servicioMap = new HashMap<>();
                     servicioMap.put("id", servicio.getId());
@@ -248,7 +347,9 @@ public class ServiciosControlador {
             return ResponseEntity.ok(resultado);
             
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            System.err.println("Error en obtenerServiciosEstablecimiento: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok(new ArrayList<>());
         }
     }
 
@@ -265,84 +366,109 @@ public class ServiciosControlador {
             List<String> horarios = establecimientoClienteServicio.obtenerHorariosDisponibles(id, fecha);
             return ResponseEntity.ok(horarios);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            System.err.println("Error en obtenerHorariosDisponibles: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok(new ArrayList<>());
         }
     }
 
-    // Métodos privados para procesamiento de datos
+    // ===== MÉTODOS PRIVADOS =====
 
     /**
-     * Crear objeto Pageable según criterio de ordenamiento
+     * Obtener establecimientos filtrados según criterios
      */
-    private Pageable crearPageable(int page, int size, String ordenarPor) {
-        Sort sort;
+    private List<EstablecimientoClienteDTO> obtenerEstablecimientosFiltrados(
+            String categoria, String busqueda, String ubicacion, Double calificacionMin) {
         
-        switch (ordenarPor.toLowerCase()) {
-            case "precio-asc":
-                sort = Sort.by("nombre").ascending(); // Simular ordenamiento por precio
-                break;
-            case "precio-desc":
-                sort = Sort.by("nombre").descending();
-                break;
-            case "calificacion":
-                sort = Sort.by("calificacionPromedio").descending();
-                break;
-            case "distancia":
-                sort = Sort.by("ciudad").ascending();
-                break;
-            default:
-                sort = Sort.by("nombre").ascending();
+        try {
+            List<EstablecimientoClienteDTO> establecimientos;
+            
+            // Filtrar por categoría
+            if (!categoria.equals("todos")) {
+                switch (categoria.toLowerCase()) {
+                    case "barberia":
+                        establecimientos = establecimientoClienteServicio.buscarPorTipo("BARBERIA");
+                        break;
+                    case "belleza":
+                        establecimientos = establecimientoClienteServicio.buscarPorTipo("SALON_BELLEZA");
+                        break;
+                    case "giftcard":
+                        Pageable pageable = PageRequest.of(0, 100);
+                        Page<EstablecimientoClienteDTO> pageEstablecimientos = 
+                            establecimientoClienteServicio.obtenerEstablecimientosActivos(pageable);
+                        establecimientos = pageEstablecimientos.getContent();
+                        break;
+                    default:
+                        Pageable pageableDefault = PageRequest.of(0, 100);
+                        Page<EstablecimientoClienteDTO> pageDefault = 
+                            establecimientoClienteServicio.obtenerEstablecimientosActivos(pageableDefault);
+                        establecimientos = pageDefault.getContent();
+                }
+            } else {
+                Pageable pageable = PageRequest.of(0, 100);
+                Page<EstablecimientoClienteDTO> pageEstablecimientos = 
+                    establecimientoClienteServicio.obtenerEstablecimientosActivos(pageable);
+                establecimientos = pageEstablecimientos.getContent();
+            }
+            
+            // Aplicar filtros adicionales
+            return establecimientos.stream()
+                .filter(est -> {
+                    // Filtro por búsqueda
+                    if (busqueda != null && !busqueda.isEmpty()) {
+                        String busquedaLower = busqueda.toLowerCase();
+                        boolean coincide = est.getNombre().toLowerCase().contains(busquedaLower) ||
+                                         (est.getDescripcion() != null && est.getDescripcion().toLowerCase().contains(busquedaLower)) ||
+                                         est.getCiudad().toLowerCase().contains(busquedaLower);
+                        if (!coincide) return false;
+                    }
+                    
+                    // Filtro por ubicación
+                    if (ubicacion != null && !ubicacion.isEmpty()) {
+                        if (!est.getCiudad().toLowerCase().contains(ubicacion.toLowerCase())) {
+                            return false;
+                        }
+                    }
+                    
+                    // Filtro por calificación mínima
+                    if (calificacionMin != null) {
+                        if (est.getCalificacionPromedio() < calificacionMin) {
+                            return false;
+                        }
+                    }
+                    
+                    return true;
+                })
+                .collect(Collectors.toList());
+                
+        } catch (Exception e) {
+            System.err.println("Error en obtenerEstablecimientosFiltrados: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
         }
-        
-        return PageRequest.of(page, size, sort);
     }
 
     /**
-     * Aplicar filtros a la lista de establecimientos
+     * Aplicar filtros adicionales a los servicios
      */
-    private List<EstablecimientoClienteDTO> aplicarFiltros(
-            List<EstablecimientoClienteDTO> establecimientos,
-            String categoria, String busqueda, String ubicacion,
-            Double precioMin, Double precioMax, Double calificacionMin) {
+    private List<ServicioClienteDTO> aplicarFiltrosAdicionales(
+            List<ServicioClienteDTO> servicios, Double precioMin, Double precioMax, String subcategoria) {
         
-        return establecimientos.stream()
-            .filter(est -> {
-                // Filtro por categoría
-                if (!categoria.equals("todos")) {
-                    switch (categoria.toLowerCase()) {
-                        case "barberia":
-                            if (!"BARBERIA".equals(est.getTipo())) return false;
-                            break;
-                        case "belleza":
-                            if (!"SALON_BELLEZA".equals(est.getTipo())) return false;
-                            break;
-                        case "giftcard":
-                            // Para gift cards, incluir todos los tipos
-                            break;
-                    }
+        return servicios.stream()
+            .filter(servicio -> {
+                // Filtro por precio mínimo
+                if (precioMin != null) {
+                    if (servicio.getPrecio().doubleValue() < precioMin) return false;
                 }
                 
-                // Filtro por búsqueda
-                if (busqueda != null && !busqueda.isEmpty()) {
-                    String busquedaLower = busqueda.toLowerCase();
-                    boolean coincide = est.getNombre().toLowerCase().contains(busquedaLower) ||
-                                     est.getDescripcion().toLowerCase().contains(busquedaLower) ||
-                                     est.getCiudad().toLowerCase().contains(busquedaLower);
-                    if (!coincide) return false;
+                // Filtro por precio máximo
+                if (precioMax != null) {
+                    if (servicio.getPrecio().doubleValue() > precioMax) return false;
                 }
                 
-                // Filtro por ubicación
-                if (ubicacion != null && !ubicacion.isEmpty()) {
-                    if (!est.getCiudad().toLowerCase().contains(ubicacion.toLowerCase())) {
-                        return false;
-                    }
-                }
-                
-                // Filtro por calificación mínima
-                if (calificacionMin != null) {
-                    if (est.getCalificacionPromedio() < calificacionMin) {
-                        return false;
-                    }
+                // Filtro por subcategoría
+                if (subcategoria != null && !subcategoria.isEmpty()) {
+                    if (!subcategoria.equals(servicio.getCategoria())) return false;
                 }
                 
                 return true;
@@ -351,196 +477,84 @@ public class ServiciosControlador {
     }
 
     /**
-     * Convertir establecimientos a formato de servicios para la respuesta
+     * Ordenar servicios según criterio
      */
-    private List<Map<String, Object>> convertirAServicios(List<EstablecimientoClienteDTO> establecimientos) {
-        return establecimientos.stream()
-            .flatMap(est -> this.generarServiciosDeEstablecimiento(est).stream())
-            .collect(Collectors.toList());
-    }
-
-    /**
-     * Generar servicios simulados para un establecimiento
-     */
-    private List<Map<String, Object>> generarServiciosDeEstablecimiento(EstablecimientoClienteDTO establecimiento) {
-        List<Map<String, Object>> servicios = new java.util.ArrayList<>();
-        
-        if ("BARBERIA".equals(establecimiento.getTipo())) {
-            servicios.addAll(generarServiciosBarberia(establecimiento));
-        } else if ("SALON_BELLEZA".equals(establecimiento.getTipo())) {
-            servicios.addAll(generarServiciosBelleza(establecimiento));
+    private List<ServicioClienteDTO> ordenarServicios(List<ServicioClienteDTO> servicios, String ordenarPor) {
+        switch (ordenarPor.toLowerCase()) {
+            case "precio-asc":
+                return servicios.stream()
+                    .sorted((a, b) -> a.getPrecio().compareTo(b.getPrecio()))
+                    .collect(Collectors.toList());
+            case "precio-desc":
+                return servicios.stream()
+                    .sorted((a, b) -> b.getPrecio().compareTo(a.getPrecio()))
+                    .collect(Collectors.toList());
+            case "calificacion":
+                return servicios.stream()
+                    .sorted((a, b) -> b.getEstablecimientoNombre().compareTo(a.getEstablecimientoNombre()))
+                    .collect(Collectors.toList());
+            case "distancia":
+                return servicios.stream()
+                    .sorted((a, b) -> a.getEstablecimientoNombre().compareToIgnoreCase(b.getEstablecimientoNombre()))
+                    .collect(Collectors.toList());
+            default:
+                return servicios; // Relevancia = orden actual
         }
-        
-        // Agregar gift cards para todos los establecimientos
-        servicios.addAll(generarGiftCards(establecimiento));
-        
-        return servicios;
     }
 
     /**
-     * Generar servicios específicos de barbería
+     * Convertir ServicioClienteDTO a Map para respuesta JSON
      */
-    private List<Map<String, Object>> generarServiciosBarberia(EstablecimientoClienteDTO establecimiento) {
-        List<Map<String, Object>> servicios = new java.util.ArrayList<>();
+    private Map<String, Object> convertirServicioAMap(ServicioClienteDTO servicio) {
+        Map<String, Object> servicioMap = new HashMap<>();
+        servicioMap.put("id", servicio.getId());
+        servicioMap.put("nombre", servicio.getNombre());
+        servicioMap.put("descripcion", servicio.getDescripcion() != null ? servicio.getDescripcion() : "Servicio profesional de calidad");
+        servicioMap.put("precio", servicio.getPrecio().doubleValue());
+        servicioMap.put("categoria", servicio.getCategoria());
+        servicioMap.put("subcategoria", servicio.getCategoria());
+        servicioMap.put("establecimiento", servicio.getEstablecimientoNombre());
+        servicioMap.put("ubicacion", "Lima"); // Por defecto, podrías obtenerlo del establecimiento
+        servicioMap.put("calificacion", 4.5); // Valor por defecto, podrías calcularlo
+        servicioMap.put("numeroResenas", 15); // Valor por defecto
+        servicioMap.put("imagen", servicio.getImagenUrl() != null ? servicio.getImagenUrl() : "/img/servicios/default.jpg");
+        servicioMap.put("disponible", servicio.isDisponible());
+        servicioMap.put("duracion", servicio.getDuracionMinutos());
+        servicioMap.put("establecimientoId", servicio.getEstablecimientoId());
         
-        // Corte de cabello
-        Map<String, Object> corte = new HashMap<>();
-        corte.put("id", establecimiento.getId() * 100 + 1);
-        corte.put("nombre", "Corte de Cabello Moderno");
-        corte.put("descripcion", "Corte profesional con las últimas tendencias");
-        corte.put("precio", 25.00);
-        corte.put("precioOriginal", 35.00);
-        corte.put("categoria", "barberia");
-        corte.put("subcategoria", "corte-cabello");
-        corte.put("establecimiento", establecimiento.getNombre());
-        corte.put("ubicacion", establecimiento.getCiudad());
-        corte.put("calificacion", establecimiento.getCalificacionPromedio());
-        corte.put("numeroResenas", establecimiento.getCantidadResenas());
-        corte.put("imagen", "/img/servicios/corte-moderno.jpg");
-        corte.put("descuento", 30);
-        corte.put("disponible", true);
-        corte.put("duracion", 45);
-        servicios.add(corte);
-        
-        // Arreglo de barba
-        Map<String, Object> barba = new HashMap<>();
-        barba.put("id", establecimiento.getId() * 100 + 2);
-        barba.put("nombre", "Arreglo de Barba Profesional");
-        barba.put("descripcion", "Arreglo y diseño de barba con técnicas profesionales");
-        barba.put("precio", 20.00);
-        barba.put("categoria", "barberia");
-        barba.put("subcategoria", "arreglo-barba");
-        barba.put("establecimiento", establecimiento.getNombre());
-        barba.put("ubicacion", establecimiento.getCiudad());
-        barba.put("calificacion", establecimiento.getCalificacionPromedio());
-        barba.put("numeroResenas", establecimiento.getCantidadResenas());
-        barba.put("imagen", "/img/servicios/arreglo-barba.jpg");
-        barba.put("disponible", true);
-        barba.put("duracion", 30);
-        servicios.add(barba);
-        
-        // Corte y barba combo
-        Map<String, Object> combo = new HashMap<>();
-        combo.put("id", establecimiento.getId() * 100 + 3);
-        combo.put("nombre", "Corte + Barba Combo");
-        combo.put("descripcion", "Servicio completo de corte de cabello y arreglo de barba");
-        combo.put("precio", 40.00);
-        combo.put("precioOriginal", 50.00);
-        combo.put("categoria", "barberia");
-        combo.put("subcategoria", "corte-barba");
-        combo.put("establecimiento", establecimiento.getNombre());
-        combo.put("ubicacion", establecimiento.getCiudad());
-        combo.put("calificacion", establecimiento.getCalificacionPromedio());
-        combo.put("numeroResenas", establecimiento.getCantidadResenas());
-        combo.put("imagen", "/img/servicios/corte-barba-combo.jpg");
-        combo.put("descuento", 20);
-        combo.put("disponible", true);
-        combo.put("duracion", 75);
-        servicios.add(combo);
-        
-        return servicios;
+        return servicioMap;
     }
 
     /**
-     * Generar servicios específicos de salón de belleza
+     * Generar gift cards para un establecimiento (solo cuando sea necesario)
      */
-    private List<Map<String, Object>> generarServiciosBelleza(EstablecimientoClienteDTO establecimiento) {
-        List<Map<String, Object>> servicios = new java.util.ArrayList<>();
+    private List<ServicioClienteDTO> generarGiftCardsParaEstablecimiento(EstablecimientoClienteDTO establecimiento) {
+        List<ServicioClienteDTO> giftCards = new ArrayList<>();
         
-        // Tratamiento facial
-        Map<String, Object> facial = new HashMap<>();
-        facial.put("id", establecimiento.getId() * 100 + 10);
-        facial.put("nombre", "Tratamiento Facial Hidratante");
-        facial.put("descripcion", "Tratamiento facial completo con productos premium");
-        facial.put("precio", 80.00);
-        facial.put("categoria", "belleza");
-        facial.put("subcategoria", "tratamientos-faciales");
-        facial.put("establecimiento", establecimiento.getNombre());
-        facial.put("ubicacion", establecimiento.getCiudad());
-        facial.put("calificacion", establecimiento.getCalificacionPromedio());
-        facial.put("numeroResenas", establecimiento.getCantidadResenas());
-        facial.put("imagen", "/img/servicios/facial-hidratante.jpg");
-        facial.put("disponible", true);
-        facial.put("duracion", 90);
-        servicios.add(facial);
-        
-        // Manicure
-        Map<String, Object> manicure = new HashMap<>();
-        manicure.put("id", establecimiento.getId() * 100 + 11);
-        manicure.put("nombre", "Manicure Gel con Diseño");
-        manicure.put("descripcion", "Manicure profesional con esmalte gel y diseños personalizados");
-        manicure.put("precio", 35.00);
-        manicure.put("categoria", "belleza");
-        manicure.put("subcategoria", "manicure");
-        manicure.put("establecimiento", establecimiento.getNombre());
-        manicure.put("ubicacion", establecimiento.getCiudad());
-        manicure.put("calificacion", establecimiento.getCalificacionPromedio());
-        manicure.put("numeroResenas", establecimiento.getCantidadResenas());
-        manicure.put("imagen", "/img/servicios/manicure-gel.jpg");
-        manicure.put("disponible", true);
-        manicure.put("duracion", 60);
-        servicios.add(manicure);
-        
-        // Coloración
-        Map<String, Object> coloracion = new HashMap<>();
-        coloracion.put("id", establecimiento.getId() * 100 + 12);
-        coloracion.put("nombre", "Coloración Completa");
-        coloracion.put("descripcion", "Cambio de color completo con productos de alta calidad");
-        coloracion.put("precio", 120.00);
-        coloracion.put("precioOriginal", 150.00);
-        coloracion.put("categoria", "belleza");
-        coloracion.put("subcategoria", "coloracion");
-        coloracion.put("establecimiento", establecimiento.getNombre());
-        coloracion.put("ubicacion", establecimiento.getCiudad());
-        coloracion.put("calificacion", establecimiento.getCalificacionPromedio());
-        coloracion.put("numeroResenas", establecimiento.getCantidadResenas());
-        coloracion.put("imagen", "/img/servicios/coloracion.jpg");
-        coloracion.put("descuento", 20);
-        coloracion.put("disponible", true);
-        coloracion.put("duracion", 180);
-        servicios.add(coloracion);
-        
-        return servicios;
-    }
-
-    /**
-     * Generar gift cards para un establecimiento
-     */
-    private List<Map<String, Object>> generarGiftCards(EstablecimientoClienteDTO establecimiento) {
-        List<Map<String, Object>> giftCards = new java.util.ArrayList<>();
-        
-        // Gift Card de S/ 50
-        Map<String, Object> gift50 = new HashMap<>();
-        gift50.put("id", establecimiento.getId() * 100 + 50);
-        gift50.put("nombre", "Gift Card - S/ 50");
-        gift50.put("descripcion", "Tarjeta de regalo de S/ 50 válida en " + establecimiento.getNombre());
-        gift50.put("precio", 50.00);
-        gift50.put("categoria", "giftcard");
-        gift50.put("subcategoria", "BARBERIA".equals(establecimiento.getTipo()) ? "giftcard-barberia" : "giftcard-belleza");
-        gift50.put("establecimiento", establecimiento.getNombre());
-        gift50.put("ubicacion", establecimiento.getCiudad());
-        gift50.put("calificacion", 5.0);
-        gift50.put("numeroResenas", 25);
-        gift50.put("imagen", "/img/servicios/giftcard-50.jpg");
-        gift50.put("disponible", true);
-        gift50.put("validez", "12 meses");
+        // Gift Card 50 soles
+        ServicioClienteDTO gift50 = new ServicioClienteDTO();
+        gift50.setId(establecimiento.getId() * 1000 + 50L);
+        gift50.setNombre("Gift Card S/ 50");
+        gift50.setDescripcion("Tarjeta regalo de S/ 50 para " + establecimiento.getNombre());
+        gift50.setPrecio(new java.math.BigDecimal("50.00"));
+        gift50.setDuracionMinutos(0);
+        gift50.setCategoria("Gift Card");
+        gift50.setEstablecimientoId(establecimiento.getId());
+        gift50.setEstablecimientoNombre(establecimiento.getNombre());
+        gift50.setDisponible(true);
         giftCards.add(gift50);
         
-        // Gift Card de S/ 100
-        Map<String, Object> gift100 = new HashMap<>();
-        gift100.put("id", establecimiento.getId() * 100 + 51);
-        gift100.put("nombre", "Gift Card - S/ 100");
-        gift100.put("descripcion", "Tarjeta de regalo de S/ 100 válida en " + establecimiento.getNombre());
-        gift100.put("precio", 100.00);
-        gift100.put("categoria", "giftcard");
-        gift100.put("subcategoria", "BARBERIA".equals(establecimiento.getTipo()) ? "giftcard-barberia" : "giftcard-belleza");
-        gift100.put("establecimiento", establecimiento.getNombre());
-        gift100.put("ubicacion", establecimiento.getCiudad());
-        gift100.put("calificacion", 5.0);
-        gift100.put("numeroResenas", 45);
-        gift100.put("imagen", "/img/servicios/giftcard-100.jpg");
-        gift100.put("disponible", true);
-        gift100.put("validez", "12 meses");
+        // Gift Card 100 soles
+        ServicioClienteDTO gift100 = new ServicioClienteDTO();
+        gift100.setId(establecimiento.getId() * 1000 + 100L);
+        gift100.setNombre("Gift Card S/ 100");
+        gift100.setDescripcion("Tarjeta regalo de S/ 100 para " + establecimiento.getNombre());
+        gift100.setPrecio(new java.math.BigDecimal("100.00"));
+        gift100.setDuracionMinutos(0);
+        gift100.setCategoria("Gift Card");
+        gift100.setEstablecimientoId(establecimiento.getId());
+        gift100.setEstablecimientoNombre(establecimiento.getNombre());
+        gift100.setDisponible(true);
         giftCards.add(gift100);
         
         return giftCards;
@@ -553,7 +567,7 @@ public class ServiciosControlador {
         Map<String, Integer> conteo = new HashMap<>();
         
         try {
-            // Obtener conteos por tipo
+            // Obtener conteos por tipo usando los servicios existentes
             List<EstablecimientoClienteDTO> barberias = establecimientoClienteServicio.buscarPorTipo("BARBERIA");
             List<EstablecimientoClienteDTO> salones = establecimientoClienteServicio.buscarPorTipo("SALON_BELLEZA");
             

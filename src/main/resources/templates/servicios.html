@@ -7,13 +7,334 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/estilos.css}">
-    <link rel="stylesheet" th:href="@{/css/servicios.css}">
+    <style>
+        :root {
+            --primary-color: #6f42c1;
+            --secondary-color: #28a745;
+            --accent-color: #fd7e14;
+            --dark-color: #343a40;
+            --light-color: #f8f9fa;
+            --border-color: #dee2e6;
+        }
+
+        /* Header de navegación personalizado */
+        .navbar-custom {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #5a32a3 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Hero section mejorado - mismo tamaño que index */
+        .hero-servicios {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-servicios::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(0, 123, 255, 0.1), rgba(102, 126, 234, 0.1));
+            z-index: 1;
+        }
+
+        .search-container {
+            position: relative;
+            z-index: 2;
+        }
+
+        .search-container .input-group-lg .form-control {
+            border-radius: 50px 0 0 50px;
+            border: none;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .search-container .btn {
+            border-radius: 0 50px 50px 0;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Sección de categorías principales - reducidas a la mitad */
+        .categorias-principales {
+            background: white;
+            margin-top: -30px;
+            position: relative;
+            z-index: 3;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+        }
+
+        .categoria-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .categoria-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+
+        .categoria-card.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .categoria-icon {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .categoria-card.active .categoria-icon {
+            color: white;
+        }
+
+        .categoria-titulo {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .categoria-descripcion {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin: 0;
+        }
+
+        .categoria-card.active .categoria-descripcion {
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* Filtros mejorados */
+        .filtros-avanzados {
+            background: var(--light-color);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .filtro-grupo {
+            margin-bottom: 1.5rem;
+        }
+
+        .filtro-titulo {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .form-select, .form-control {
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .form-select:focus, .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+        }
+
+        /* Cards de servicios */
+        .servicio-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            height: 100%;
+        }
+
+        .servicio-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+
+        .servicio-imagen {
+            height: 200px;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            position: relative;
+            overflow: hidden;
+        }
+
+        .servicio-imagen img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .badge-descuento {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--accent-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .servicio-info {
+            padding: 1.5rem;
+        }
+
+        .servicio-titulo {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .servicio-establecimiento {
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .servicio-descripcion {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .servicio-precio {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .precio-actual {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+
+        .precio-original {
+            font-size: 1rem;
+            color: #6c757d;
+            text-decoration: line-through;
+        }
+
+        .btn-reservar {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #5a32a3 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn-reservar:hover {
+            background: linear-gradient(135deg, #5a32a3 0%, var(--primary-color) 100%);
+            transform: translateY(-2px);
+        }
+
+        /* Tabs de navegación */
+        .nav-pills-custom .nav-link {
+            border-radius: 50px;
+            margin: 0 0.25rem;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .nav-pills-custom .nav-link.active {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #5a32a3 100%);
+            border-color: var(--primary-color);
+        }
+
+        .nav-pills-custom .nav-link:not(.active) {
+            color: var(--primary-color);
+            background: white;
+            border-color: var(--border-color);
+        }
+
+        .nav-pills-custom .nav-link:not(.active):hover {
+            background: var(--light-color);
+            border-color: var(--primary-color);
+        }
+
+        /* Ordenamiento */
+        .ordenar-contenedor {
+            background: white;
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        /* Loading y estados */
+        .loading-spinner {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .no-resultados {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+
+        /* Responsive - mismo que index */
+        @media (max-width: 768px) {
+            .hero-servicios {
+                padding: 40px 0;
+            }
+            
+            .categorias-principales {
+                margin-top: -20px;
+                padding: 1rem;
+            }
+            
+            .categoria-card {
+                margin-bottom: 0.75rem;
+                height: 100px;
+                padding: 0.75rem;
+            }
+
+            .categoria-icon {
+                font-size: 1.5rem;
+                margin-bottom: 0.4rem;
+            }
+
+            .categoria-titulo {
+                font-size: 0.9rem;
+            }
+
+            .categoria-descripcion {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Barra de navegación -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-custom">
         <div class="container">
-            <a class="navbar-brand" th:href="@{/}">
+            <a class="navbar-brand text-white fw-bold" th:href="@{/}">
                 <i class="fas fa-cut me-2"></i>FELICITA
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -22,35 +343,35 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" th:href="@{/}">Inicio</a>
+                        <a class="nav-link text-white" th:href="@{/}">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" th:href="@{/servicios}">Servicios</a>
+                        <a class="nav-link text-white fw-bold" th:href="@{/servicios}">Servicios</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" th:href="@{/acerca}">Acerca de</a>
+                        <a class="nav-link text-white" th:href="@{/acerca}">Acerca de</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" th:href="@{/contacto}">Contacto</a>
+                        <a class="nav-link text-white" th:href="@{/contacto}">Contacto</a>
                     </li>
                 </ul>
                 
                 <!-- Menú de usuario -->
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item" sec:authorize="!isAuthenticated()">
-                        <a class="nav-link" th:href="@{/login}">
+                        <a class="nav-link text-white" th:href="@{/login}">
                             <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
                         </a>
                     </li>
                     <li class="nav-item" sec:authorize="!isAuthenticated()">
-                        <a class="nav-link" th:href="@{/registro}">
+                        <a class="nav-link text-white" th:href="@{/registro}">
                             <i class="fas fa-user-plus me-1"></i> Registrarse
                         </a>
                     </li>
                     
                     <!-- Dropdown para usuario autenticado -->
                     <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-user-circle me-1"></i> 
                             <span sec:authentication="name">Usuario</span>
                         </a>
@@ -85,23 +406,20 @@
         </div>
     </nav>
 
-    <!-- Hero section para servicios -->
-    <section class="hero-servicios bg-primary text-white py-5">
+    <!-- Hero section - mismo tamaño que index -->
+    <section class="hero-servicios">
         <div class="container">
             <div class="row">
                 <div class="col-12 text-center">
-                    <h1 class="display-4 fw-bold mb-3">Nuestros Servicios</h1>
-                    <p class="lead mb-4">Descubre los mejores servicios de belleza y bienestar cerca de ti</p>
+                    <h1 class="display-5 fw-bold mb-3 text-white">Descubre Nuestros Servicios</h1>
+                    <p class="lead mb-4 text-white-50">Los mejores servicios de belleza y bienestar cerca de ti</p>
                     
-                    <!-- Barra de búsqueda mejorada -->
+                    <!-- Barra de búsqueda -->
                     <div class="search-container mx-auto" style="max-width: 600px;">
                         <div class="input-group input-group-lg">
-                            <span class="input-group-text bg-white">
-                                <i class="fas fa-search text-primary"></i>
-                            </span>
                             <input type="text" class="form-control" id="busquedaServicio" 
-                                   placeholder="Buscar servicios, tratamientos, establecimientos...">
-                            <button class="btn btn-outline-light" type="button" id="btnBuscar">
+                                   placeholder="¿Qué estas buscando?">
+                            <button class="btn btn-warning fw-bold" type="button" id="btnBuscar">
                                 <i class="fas fa-search me-2"></i> Buscar
                             </button>
                         </div>
@@ -111,295 +429,150 @@
         </div>
     </section>
 
+    <!-- Categorías principales -->
+    <div class="container">
+        <div class="categorias-principales">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="categoria-card active" data-categoria="barberia">
+                        <div class="categoria-icon">
+                            <i class="fas fa-cut"></i>
+                        </div>
+                        <div class="categoria-titulo">Barbería</div>
+                        <div class="categoria-descripcion">Cortes, barba y más</div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="categoria-card" data-categoria="belleza">
+                        <div class="categoria-icon">
+                            <i class="fas fa-spa"></i>
+                        </div>
+                        <div class="categoria-titulo">Belleza</div>
+                        <div class="categoria-descripcion">Tratamientos y spa</div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="categoria-card" data-categoria="giftcard">
+                        <div class="categoria-icon">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        <div class="categoria-titulo">Gift Cards</div>
+                        <div class="categoria-descripcion">Regala experiencias</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Contenido principal -->
-    <div class="container-fluid mt-4">
+    <div class="container mt-5">
         <div class="row">
-            <!-- Sidebar de categorías -->
-            <div class="col-lg-3 col-md-4">
-                <div class="sidebar-categorias">
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0">
-                                <i class="fas fa-filter me-2"></i> Categorías
-                            </h5>
-                        </div>
-                        <div class="card-body p-0">
-                            <!-- Categorías principales -->
-                            <div class="categoria-section">
-                                <h6 class="categoria-titulo" data-bs-toggle="collapse" data-bs-target="#categoriaBarberia">
-                                    <i class="fas fa-cut me-2"></i> Barbería
-                                    <i class="fas fa-chevron-down float-end"></i>
-                                </h6>
-                                <div class="collapse show" id="categoriaBarberia">
-                                    <ul class="lista-subcategorias">
-                                        <li><a href="#" data-categoria="barberia" data-servicio="corte-cabello">Corte de Cabello</a></li>
-                                        <li><a href="#" data-categoria="barberia" data-servicio="arreglo-barba">Arreglo de Barba</a></li>
-                                        <li><a href="#" data-categoria="barberia" data-servicio="corte-barba">Corte y Barba</a></li>
-                                        <li><a href="#" data-categoria="barberia" data-servicio="afeitado-clasico">Afeitado Clásico</a></li>
-                                        <li><a href="#" data-categoria="barberia" data-servicio="tratamientos-capilares">Tratamientos Capilares</a></li>
-                                        <li><a href="#" data-categoria="barberia" data-servicio="servicios-faciales">Servicios Faciales</a></li>
-                                    </ul>
-                                </div>
-                            </div>
+            <!-- Sidebar de filtros -->
+            <div class="col-lg-3 col-md-4 mb-4">
+                <div class="filtros-avanzados">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-filter me-2"></i> Filtros
+                    </h5>
+                    
+                    <!-- Filtro por ubicación -->
+                    <div class="filtro-grupo">
+                        <div class="filtro-titulo">Ubicación</div>
+                        <select class="form-select" id="filtroUbicacion">
+                            <option value="">Todas las ubicaciones</option>
+                            <option value="lima">Lima</option>
+                            <option value="callao">Callao</option>
+                            <option value="san-isidro">San Isidro</option>
+                            <option value="miraflores">Miraflores</option>
+                            <option value="surco">Surco</option>
+                        </select>
+                    </div>
 
-                            <div class="categoria-section">
-                                <h6 class="categoria-titulo" data-bs-toggle="collapse" data-bs-target="#categoriaBelleza">
-                                    <i class="fas fa-spa me-2"></i> Salón de Belleza
-                                    <i class="fas fa-chevron-down float-end"></i>
-                                </h6>
-                                <div class="collapse show" id="categoriaBelleza">
-                                    <ul class="lista-subcategorias">
-                                        <li><a href="#" data-categoria="belleza" data-servicio="corte-peinado">Corte y Peinado</a></li>
-                                        <li><a href="#" data-categoria="belleza" data-servicio="coloracion">Coloración</a></li>
-                                        <li><a href="#" data-categoria="belleza" data-servicio="tratamientos-capilares">Tratamientos Capilares</a></li>
-                                        <li><a href="#" data-categoria="belleza" data-servicio="maquillaje">Maquillaje</a></li>
-                                        <li><a href="#" data-categoria="belleza" data-servicio="manicure">Manicure</a></li>
-                                        <li><a href="#" data-categoria="belleza" data-servicio="pedicure">Pedicure</a></li>
-                                        <li><a href="#" data-categoria="belleza" data-servicio="depilacion">Depilación</a></li>
-                                        <li><a href="#" data-categoria="belleza" data-servicio="tratamientos-faciales">Tratamientos Faciales</a></li>
-                                    </ul>
-                                </div>
+                    <!-- Filtro por precio -->
+                    <div class="filtro-grupo">
+                        <div class="filtro-titulo">Rango de Precio</div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="number" class="form-control" placeholder="Mín" id="precioMin">
                             </div>
-
-                            <div class="categoria-section">
-                                <h6 class="categoria-titulo" data-bs-toggle="collapse" data-bs-target="#categoriaGiftCard">
-                                    <i class="fas fa-gift me-2"></i> Gift Cards
-                                    <i class="fas fa-chevron-down float-end"></i>
-                                </h6>
-                                <div class="collapse show" id="categoriaGiftCard">
-                                    <ul class="lista-subcategorias">
-                                        <li><a href="#" data-categoria="giftcard" data-servicio="giftcard-barberia">Gift Card Barbería</a></li>
-                                        <li><a href="#" data-categoria="giftcard" data-servicio="giftcard-belleza">Gift Card Belleza</a></li>
-                                        <li><a href="#" data-categoria="giftcard" data-servicio="giftcard-personalizada">Gift Card Personalizada</a></li>
-                                    </ul>
-                                </div>
+                            <div class="col-6">
+                                <input type="number" class="form-control" placeholder="Máx" id="precioMax">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Filtros adicionales -->
-                    <div class="card shadow-sm mt-3">
-                        <div class="card-header bg-secondary text-white">
-                            <h6 class="mb-0">
-                                <i class="fas fa-sliders-h me-2"></i> Filtros
-                            </h6>
-                        </div>
-                        <div class="card-body">
-                            <!-- Filtro por ubicación -->
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Ubicación</label>
-                                <select class="form-select" id="filtroUbicacion">
-                                    <option value="">Todas las ubicaciones</option>
-                                    <option value="lima">Lima</option>
-                                    <option value="callao">Callao</option>
-                                    <option value="san-isidro">San Isidro</option>
-                                    <option value="miraflores">Miraflores</option>
-                                </select>
+                    <!-- Filtro por calificación -->
+                    <div class="filtro-grupo">
+                        <div class="filtro-titulo">Calificación mínima</div>
+                        <div class="rating-filter">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="rating" value="4" id="rating4">
+                                <label class="form-check-label" for="rating4">
+                                    <span class="text-warning">★★★★☆</span> y superior
+                                </label>
                             </div>
-
-                            <!-- Filtro por precio -->
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Rango de Precio</label>
-                                <div class="row">
-                                    <div class="col-6">
-                                        <input type="number" class="form-control" placeholder="Min" id="precioMin">
-                                    </div>
-                                    <div class="col-6">
-                                        <input type="number" class="form-control" placeholder="Max" id="precioMax">
-                                    </div>
-                                </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="rating" value="3" id="rating3">
+                                <label class="form-check-label" for="rating3">
+                                    <span class="text-warning">★★★☆☆</span> y superior
+                                </label>
                             </div>
-
-                            <!-- Filtro por calificación -->
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Calificación mínima</label>
-                                <div class="rating-filter">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="rating" value="4" id="rating4">
-                                        <label class="form-check-label" for="rating4">
-                                            ★★★★☆ y superior
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="rating" value="3" id="rating3">
-                                        <label class="form-check-label" for="rating3">
-                                            ★★★☆☆ y superior
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button type="button" class="btn btn-primary w-100" id="aplicarFiltros">
-                                <i class="fas fa-filter me-2"></i> Aplicar Filtros
-                            </button>
                         </div>
                     </div>
+
+                    <button type="button" class="btn btn-primary w-100 mt-3" id="aplicarFiltros">
+                        <i class="fas fa-filter me-2"></i> Aplicar Filtros
+                    </button>
+                    
+                    <button type="button" class="btn btn-outline-secondary w-100 mt-2" id="limpiarFiltros">
+                        <i class="fas fa-times me-2"></i> Limpiar Filtros
+                    </button>
                 </div>
             </div>
 
             <!-- Contenido principal de servicios -->
             <div class="col-lg-9 col-md-8">
-                <!-- Tabs de servicios principales -->
-                <div class="servicios-tabs mb-4">
-                    <ul class="nav nav-pills nav-fill" id="serviciosTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="todos-tab" data-bs-toggle="pill" data-bs-target="#todos" type="button" role="tab">
-                                <i class="fas fa-th-large me-2"></i> Todos los Servicios
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="barberia-tab" data-bs-toggle="pill" data-bs-target="#barberia" type="button" role="tab">
-                                <i class="fas fa-cut me-2"></i> Barbería
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="belleza-tab" data-bs-toggle="pill" data-bs-target="#belleza" type="button" role="tab">
-                                <i class="fas fa-spa me-2"></i> Belleza
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="giftcard-tab" data-bs-toggle="pill" data-bs-target="#giftcard" type="button" role="tab">
-                                <i class="fas fa-gift me-2"></i> Gift Cards
-                            </button>
-                        </li>
-                    </ul>
+                <!-- Barra de ordenamiento -->
+                <div class="ordenar-contenedor d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">Servicios Disponibles</h4>
+                        <small class="text-muted" id="resultadosConteo">Cargando...</small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="me-2">Ordenar por:</span>
+                        <select class="form-select" style="width: auto;" id="ordenarPor">
+                            <option value="relevancia">Relevancia</option>
+                            <option value="precio-asc">Precio: Menor a Mayor</option>
+                            <option value="precio-desc">Precio: Mayor a Menor</option>
+                            <option value="calificacion">Mejor Calificado</option>
+                            <option value="distancia">Más Cercano</option>
+                        </select>
+                    </div>
                 </div>
 
-                <!-- Contenido de los tabs -->
-                <div class="tab-content" id="serviciosTabContent">
-                    <!-- Tab de todos los servicios -->
-                    <div class="tab-pane fade show active" id="todos" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4>Todos los Servicios Disponibles</h4>
-                            <div class="d-flex align-items-center">
-                                <span class="me-2">Ordenar por:</span>
-                                <select class="form-select form-select-sm" style="width: auto;" id="ordenarPor">
-                                    <option value="relevancia">Relevancia</option>
-                                    <option value="precio-asc">Precio: Menor a Mayor</option>
-                                    <option value="precio-desc">Precio: Mayor a Menor</option>
-                                    <option value="calificacion">Mejor Calificado</option>
-                                    <option value="distancia">Más Cercano</option>
-                                </select>
+                <!-- Grid de servicios -->
+                <div class="row g-4 mt-1" id="serviciosContainer">
+                    <!-- Los servicios se cargarán dinámicamente aquí -->
+                    <div class="col-12">
+                        <div class="loading-spinner">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
                             </div>
+                            <p class="mt-3">Cargando servicios...</p>
                         </div>
-
-                        <!-- Grid de servicios -->
-                        <div class="row" id="serviciosContainer">
-                            <!-- Los servicios se cargarán dinámicamente aquí -->
-                        </div>
-
-                        <!-- Paginación -->
-                        <nav aria-label="Paginación de servicios" class="mt-4">
-                            <ul class="pagination justify-content-center" id="paginacion">
-                                <!-- La paginación se generará dinámicamente -->
-                            </ul>
-                        </nav>
-                    </div>
-
-                    <!-- Otros tabs tendrán contenido similar -->
-                    <div class="tab-pane fade" id="barberia" role="tabpanel">
-                        <!-- Contenido específico de barbería -->
-                    </div>
-
-                    <div class="tab-pane fade" id="belleza" role="tabpanel">
-                        <!-- Contenido específico de belleza -->
-                    </div>
-
-                    <div class="tab-pane fade" id="giftcard" role="tabpanel">
-                        <!-- Contenido específico de gift cards -->
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Modal de Login/Registro -->
-    <div class="modal fade" id="modalAuth" tabindex="-1" aria-labelledby="modalAuthLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalAuthLabel">Acceder a tu cuenta</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Tabs de Login/Registro -->
-                    <ul class="nav nav-tabs" id="authTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab">
-                                Iniciar Sesión
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="registro-tab" data-bs-toggle="tab" data-bs-target="#registro" type="button" role="tab">
-                                Registrarse
-                            </button>
-                        </li>
+                <!-- Paginación -->
+                <nav aria-label="Paginación de servicios" class="mt-4">
+                    <ul class="pagination justify-content-center" id="paginacion">
+                        <!-- La paginación se generará dinámicamente -->
                     </ul>
-                    
-                    <div class="tab-content mt-3" id="authTabContent">
-                        <!-- Tab de Login -->
-                        <div class="tab-pane fade show active" id="login" role="tabpanel">
-                            <form id="loginForm">
-                                <div class="mb-3">
-                                    <label for="emailLogin" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="emailLogin" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="passwordLogin" class="form-label">Contraseña</label>
-                                    <input type="password" class="form-control" id="passwordLogin" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
-                            </form>
-                        </div>
-                        
-                        <!-- Tab de Registro -->
-                        <div class="tab-pane fade" id="registro" role="tabpanel">
-                            <form id="registroForm">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="nombreRegistro" class="form-label">Nombre</label>
-                                        <input type="text" class="form-control" id="nombreRegistro" required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="apellidoRegistro" class="form-label">Apellido</label>
-                                        <input type="text" class="form-control" id="apellidoRegistro" required>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="emailRegistro" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="emailRegistro" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="telefonoRegistro" class="form-label">Teléfono</label>
-                                    <input type="tel" class="form-control" id="telefonoRegistro">
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="passwordRegistro" class="form-label">Contraseña</label>
-                                        <input type="password" class="form-control" id="passwordRegistro" required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="confirmarPasswordRegistro" class="form-label">Confirmar Contraseña</label>
-                                        <input type="password" class="form-control" id="confirmarPasswordRegistro" required>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="tipoUsuario" class="form-label">Tipo de usuario</label>
-                                    <select class="form-select" id="tipoUsuario" required>
-                                        <option value="CLIENTE">Cliente</option>
-                                        <option value="PROADMIN">Propietario de Establecimiento</option>
-                                    </select>
-                                </div>
-                                <button type="submit" class="btn btn-success w-100">Registrarse</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+                </nav>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Reserva de Cita -->
+    <!-- Modal de Reserva -->
     <div class="modal fade" id="modalReserva" tabindex="-1" aria-labelledby="modalReservaLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -456,8 +629,8 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-dark text-white py-4 mt-5">
+    <!-- Footer - copiado del index.html -->
+    <footer class="bg-dark text-white py-5">
         <div class="container">
             <div class="row">
                 <div class="col-lg-4 mb-4 mb-lg-0">
@@ -468,7 +641,7 @@
                     <h5 class="mb-3">Enlaces</h5>
                     <ul class="list-unstyled">
                         <li><a th:href="@{/}" class="text-decoration-none text-muted">Inicio</a></li>
-                        <li><a th:href="@{/servicios}" class="text-decoration-none text-muted">Servicios</a></li>
+                        <li><a href="/servicios" class="text-decoration-none text-muted">Servicios</a></li>
                         <li><a th:href="@{/acerca}" class="text-decoration-none text-muted">Acerca de</a></li>
                         <li><a th:href="@{/contacto}" class="text-decoration-none text-muted">Contacto</a></li>
                     </ul>
@@ -476,18 +649,23 @@
                 <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
                     <h5 class="mb-3">Recursos</h5>
                     <ul class="list-unstyled">
-                        <li><a href="#" class="text-decoration-none text-muted">Preguntas frecuentes</a></li>
-                        <li><a href="#" class="text-decoration-none text-muted">Política de privacidad</a></li>
-                        <li><a href="#" class="text-decoration-none text-muted">Términos y condiciones</a></li>
+                        <li><a href="/servicios" class="text-decoration-none text-muted">Explorar Servicios</a></li>
+                        <li><a href="/servicios?categoria=barberia" class="text-decoration-none text-muted">Barbería</a></li>
+                        <li><a href="/servicios?categoria=belleza" class="text-decoration-none text-muted">Salón de Belleza</a></li>
+                        <li><a href="/servicios?categoria=giftcard" class="text-decoration-none text-muted">Gift Cards</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <h5 class="mb-3">Síguenos</h5>
-                    <div class="d-flex gap-3">
+                    <div class="d-flex gap-3 mb-3">
                         <a href="#" class="text-muted"><i class="fab fa-facebook-f fa-lg"></i></a>
                         <a href="#" class="text-muted"><i class="fab fa-instagram fa-lg"></i></a>
                         <a href="#" class="text-muted"><i class="fab fa-twitter fa-lg"></i></a>
                         <a href="#" class="text-muted"><i class="fab fa-youtube fa-lg"></i></a>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-1">¿Tienes preguntas?</p>
+                        <a href="mailto:info@felicita.com" class="text-decoration-none text-muted">info@felicita.com</a>
                     </div>
                 </div>
             </div>
@@ -505,6 +683,581 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script th:src="@{/js/servicios.js}"></script>
+    <script>
+        // Variables globales
+        let serviciosData = [];
+        let filtrosActivos = {
+            categoria: 'barberia',
+            ubicacion: '',
+            precioMin: '',
+            precioMax: '',
+            calificacion: '',
+            ordenarPor: 'relevancia'
+        };
+        let paginaActual = 0;
+        let serviciosPorPagina = 12;
+
+        // Inicialización cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            inicializarEventos();
+            
+            // Debug: verificar estado de autenticación
+            const userMenuExists = document.querySelector('[sec\\:authorize="isAuthenticated()"]') !== null;
+            const loginLink = document.querySelector('a[href*="/login"]');
+            const userDropdown = document.querySelector('#navbarDropdown');
+            
+            console.log('Debug autenticación:');
+            console.log('- Menú usuario existe:', !!userDropdown);
+            console.log('- Link login existe:', !!loginLink);
+            console.log('- Usuario autenticado:', !loginLink && !!userDropdown);
+            
+            // Cargar servicios después de verificar autenticación
+            cargarServicios();
+        });
+
+        function inicializarEventos() {
+            // Eventos de categorías principales
+            document.querySelectorAll('.categoria-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    // Remover clase active de todas las cards
+                    document.querySelectorAll('.categoria-card').forEach(c => c.classList.remove('active'));
+                    // Agregar clase active a la card seleccionada
+                    this.classList.add('active');
+                    
+                    // Actualizar filtro y recargar servicios
+                    filtrosActivos.categoria = this.dataset.categoria;
+                    paginaActual = 0;
+                    cargarServicios();
+                });
+            });
+
+            // Eventos de filtros
+            document.getElementById('filtroUbicacion').addEventListener('change', function() {
+                filtrosActivos.ubicacion = this.value;
+                paginaActual = 0;
+                cargarServicios();
+            });
+
+            document.getElementById('precioMin').addEventListener('input', function() {
+                filtrosActivos.precioMin = this.value;
+                debounceCargarServicios();
+            });
+
+            document.getElementById('precioMax').addEventListener('input', function() {
+                filtrosActivos.precioMax = this.value;
+                debounceCargarServicios();
+            });
+
+            document.querySelectorAll('input[name="rating"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    filtrosActivos.calificacion = this.value;
+                    paginaActual = 0;
+                    cargarServicios();
+                });
+            });
+
+            document.getElementById('ordenarPor').addEventListener('change', function() {
+                filtrosActivos.ordenarPor = this.value;
+                paginaActual = 0;
+                cargarServicios();
+            });
+
+            // Botones de filtros
+            document.getElementById('aplicarFiltros').addEventListener('click', function() {
+                paginaActual = 0;
+                cargarServicios();
+            });
+
+            document.getElementById('limpiarFiltros').addEventListener('click', function() {
+                limpiarFiltros();
+            });
+
+            // Búsqueda
+            document.getElementById('btnBuscar').addEventListener('click', function() {
+                realizarBusqueda();
+            });
+
+            document.getElementById('busquedaServicio').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    realizarBusqueda();
+                }
+            });
+        }
+
+        // Debounce para las búsquedas de precio
+        let timeoutId;
+        function debounceCargarServicios() {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                paginaActual = 0;
+                cargarServicios();
+            }, 500);
+        }
+
+        function cargarServicios() {
+            mostrarCargando();
+            
+            // Construir URL con parámetros
+            const params = new URLSearchParams({
+                page: paginaActual,
+                size: serviciosPorPagina,
+                categoria: filtrosActivos.categoria,
+                ordenarPor: filtrosActivos.ordenarPor
+            });
+
+            if (filtrosActivos.ubicacion) params.append('ubicacion', filtrosActivos.ubicacion);
+            if (filtrosActivos.precioMin) params.append('precioMin', filtrosActivos.precioMin);
+            if (filtrosActivos.precioMax) params.append('precioMax', filtrosActivos.precioMax);
+            if (filtrosActivos.calificacion) params.append('calificacionMin', filtrosActivos.calificacion);
+
+            fetch(`/servicios/api?${params}`)
+                .then(response => response.json())
+                .then(data => {
+                    serviciosData = data.servicios || [];
+                    mostrarServicios(serviciosData);
+                    actualizarConteoResultados(data.totalElementos || 0);
+                    generarPaginacion(data.totalPaginas || 1, data.paginaActual || 0);
+                })
+                .catch(error => {
+                    console.error('Error cargando servicios:', error);
+                    mostrarError();
+                });
+        }
+
+        function mostrarServicios(servicios) {
+            const container = document.getElementById('serviciosContainer');
+            
+            if (!servicios || servicios.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12">
+                        <div class="no-resultados">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h4>No se encontraron servicios</h4>
+                            <p>Intenta ajustar tus filtros o buscar algo diferente</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = servicios.map(servicio => crearCardServicio(servicio)).join('');
+            
+            // Agregar eventos a los botones de reserva
+            container.querySelectorAll('.btn-reservar').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const servicioId = this.dataset.servicioId;
+                    abrirModalReserva(servicioId);
+                });
+            });
+        }
+
+        function crearCardServicio(servicio) {
+            const descuento = servicio.descuento || 0;
+            const badgeDescuento = descuento > 0 ? `<div class="badge-descuento">${descuento}% OFF</div>` : '';
+            const precioOriginal = servicio.precioOriginal ? 
+                `<span class="precio-original">S/ ${servicio.precioOriginal.toFixed(2)}</span>` : '';
+            
+            const estrellas = generarEstrellas(servicio.calificacion || 4.5);
+            
+            return `
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="servicio-card">
+                        <div class="servicio-imagen">
+                            <img src="${servicio.imagen || '/img/servicios/default.jpg'}" 
+                                 alt="${servicio.nombre}" 
+                                 onerror="this.src='/img/servicios/default.jpg'">
+                            ${badgeDescuento}
+                        </div>
+                        <div class="servicio-info">
+                            <h5 class="servicio-titulo">${servicio.nombre}</h5>
+                            <p class="servicio-establecimiento">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                ${servicio.establecimiento} - ${servicio.ubicacion}
+                            </p>
+                            <p class="servicio-descripcion">${servicio.descripcion}</p>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="rating">
+                                    ${estrellas}
+                                    <small class="text-muted">(${servicio.numeroResenas || 0})</small>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>${servicio.duracion || 30} min
+                                </small>
+                            </div>
+                            
+                            <div class="servicio-precio">
+                                <div>
+                                    <span class="precio-actual">S/ ${servicio.precio.toFixed(2)}</span>
+                                    ${precioOriginal}
+                                </div>
+                            </div>
+                            
+                            <button class="btn-reservar" data-servicio-id="${servicio.id}">
+                                <i class="fas fa-calendar-plus me-2"></i>Reservar Ahora
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generarEstrellas(calificacion) {
+            const estrellas = Math.floor(calificacion);
+            const mediaEstrella = calificacion % 1 >= 0.5;
+            let html = '';
+            
+            for (let i = 0; i < 5; i++) {
+                if (i < estrellas) {
+                    html += '<i class="fas fa-star text-warning"></i>';
+                } else if (i === estrellas && mediaEstrella) {
+                    html += '<i class="fas fa-star-half-alt text-warning"></i>';
+                } else {
+                    html += '<i class="far fa-star text-warning"></i>';
+                }
+            }
+            
+            return html;
+        }
+
+        function mostrarCargando() {
+            document.getElementById('serviciosContainer').innerHTML = `
+                <div class="col-12">
+                    <div class="loading-spinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-3">Cargando servicios...</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function mostrarError() {
+            document.getElementById('serviciosContainer').innerHTML = `
+                <div class="col-12">
+                    <div class="no-resultados">
+                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                        <h4>Error al cargar servicios</h4>
+                        <p>Por favor, inténtalo de nuevo más tarde</p>
+                        <button class="btn btn-primary" onclick="cargarServicios()">
+                            <i class="fas fa-redo me-2"></i>Reintentar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function actualizarConteoResultados(total) {
+            const conteo = document.getElementById('resultadosConteo');
+            if (total === 0) {
+                conteo.textContent = 'No se encontraron resultados';
+            } else if (total === 1) {
+                conteo.textContent = '1 servicio encontrado';
+            } else {
+                conteo.textContent = `${total} servicios encontrados`;
+            }
+        }
+
+        function generarPaginacion(totalPaginas, paginaActual) {
+            const paginacionContainer = document.getElementById('paginacion');
+            
+            if (totalPaginas <= 1) {
+                paginacionContainer.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            
+            // Botón anterior
+            const anteriorDisabled = paginaActual === 0 ? 'disabled' : '';
+            html += `
+                <li class="page-item ${anteriorDisabled}">
+                    <a class="page-link" href="#" data-pagina="${paginaActual - 1}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+            `;
+            
+            // Números de página
+            const inicio = Math.max(0, paginaActual - 2);
+            const fin = Math.min(totalPaginas, inicio + 5);
+            
+            for (let i = inicio; i < fin; i++) {
+                const activeClass = i === paginaActual ? 'active' : '';
+                html += `
+                    <li class="page-item ${activeClass}">
+                        <a class="page-link" href="#" data-pagina="${i}">${i + 1}</a>
+                    </li>
+                `;
+            }
+            
+            // Botón siguiente
+            const siguienteDisabled = paginaActual >= totalPaginas - 1 ? 'disabled' : '';
+            html += `
+                <li class="page-item ${siguienteDisabled}">
+                    <a class="page-link" href="#" data-pagina="${paginaActual + 1}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            `;
+            
+            paginacionContainer.innerHTML = html;
+            
+            // Agregar eventos a los enlaces de paginación
+            paginacionContainer.querySelectorAll('.page-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (!this.parentElement.classList.contains('disabled') && 
+                        !this.parentElement.classList.contains('active')) {
+                        paginaActual = parseInt(this.dataset.pagina);
+                        cargarServicios();
+                    }
+                });
+            });
+        }
+
+        function realizarBusqueda() {
+            const termino = document.getElementById('busquedaServicio').value.trim();
+            if (termino) {
+                filtrosActivos.busqueda = termino;
+                paginaActual = 0;
+                cargarServicios();
+            }
+        }
+
+        function limpiarFiltros() {
+            // Limpiar formulario
+            document.getElementById('filtroUbicacion').value = '';
+            document.getElementById('precioMin').value = '';
+            document.getElementById('precioMax').value = '';
+            document.querySelectorAll('input[name="rating"]').forEach(radio => radio.checked = false);
+            document.getElementById('busquedaServicio').value = '';
+            
+            // Resetear filtros pero mantener categoría activa
+            const categoriaActual = filtrosActivos.categoria;
+            filtrosActivos = {
+                categoria: categoriaActual,
+                ubicacion: '',
+                precioMin: '',
+                precioMax: '',
+                calificacion: '',
+                ordenarPor: 'relevancia'
+            };
+            
+            document.getElementById('ordenarPor').value = 'relevancia';
+            paginaActual = 0;
+            cargarServicios();
+        }
+
+        function abrirModalReserva(servicioId) {
+            // Verificar si el usuario está autenticado usando Thymeleaf
+            const userMenuExists = document.querySelector('[sec\\:authorize="isAuthenticated()"]') !== null;
+            const loginLink = document.querySelector('a[href*="/login"]');
+            const isAutenticado = !loginLink || userMenuExists;
+            
+            console.log('Estado de autenticación:', isAutenticado);
+            
+            if (!isAutenticado) {
+                // Mostrar confirmación para ir al login
+                if (confirm('Necesitas iniciar sesión para reservar una cita. ¿Deseas ir a la página de login?')) {
+                    window.location.href = '/login?returnUrl=' + encodeURIComponent(window.location.href);
+                }
+                return;
+            }
+            
+            // Usuario autenticado - proceder con la reserva
+            const servicio = serviciosData.find(s => s.id == servicioId);
+            if (servicio) {
+                // Llenar datos del modal
+                document.getElementById('modalReservaLabel').textContent = `Reservar: ${servicio.nombre}`;
+                
+                // Cargar establecimientos y servicios
+                cargarEstablecimientosParaReserva(servicio.establecimiento);
+                
+                // Mostrar modal
+                const modal = new bootstrap.Modal(document.getElementById('modalReserva'));
+                modal.show();
+            }
+        }
+
+        function cargarEstablecimientosParaReserva(establecimientoPreseleccionado) {
+            fetch(`/servicios/api/establecimientos?categoria=${filtrosActivos.categoria}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al cargar establecimientos');
+                    }
+                    return response.json();
+                })
+                .then(establecimientos => {
+                    const select = document.getElementById('establecimientoSelect');
+                    select.innerHTML = '<option value="">Seleccionar establecimiento</option>';
+                    
+                    establecimientos.forEach(est => {
+                        const selected = est.nombre === establecimientoPreseleccionado ? 'selected' : '';
+                        select.innerHTML += `<option value="${est.id}" ${selected}>${est.nombre} - ${est.ubicacion}</option>`;
+                    });
+                    
+                    // Si hay preselección, cargar servicios
+                    if (establecimientoPreseleccionado) {
+                        const estSeleccionado = establecimientos.find(e => e.nombre === establecimientoPreseleccionado);
+                        if (estSeleccionado) {
+                            cargarServiciosParaReserva(estSeleccionado.id);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cargando establecimientos:', error);
+                    alert('Error al cargar establecimientos. Por favor, inténtalo de nuevo.');
+                });
+            
+            // Evento para cargar servicios cuando cambie el establecimiento
+            const establecimientoSelect = document.getElementById('establecimientoSelect');
+            // Remover listeners previos para evitar duplicados
+            establecimientoSelect.replaceWith(establecimientoSelect.cloneNode(true));
+            document.getElementById('establecimientoSelect').addEventListener('change', function() {
+                if (this.value) {
+                    cargarServiciosParaReserva(this.value);
+                } else {
+                    // Limpiar servicios si no hay establecimiento seleccionado
+                    document.getElementById('servicioSelect').innerHTML = '<option value="">Seleccionar servicio</option>';
+                }
+            });
+        }
+
+        function cargarServiciosParaReserva(establecimientoId) {
+            fetch(`/servicios/api/establecimientos/${establecimientoId}/servicios`)
+                .then(response => response.json())
+                .then(servicios => {
+                    const select = document.getElementById('servicioSelect');
+                    select.innerHTML = '<option value="">Seleccionar servicio</option>';
+                    
+                    servicios.forEach(servicio => {
+                        select.innerHTML += `
+                            <option value="${servicio.id}" data-precio="${servicio.precio}">
+                                ${servicio.nombre} - S/ ${servicio.precio.toFixed(2)}
+                            </option>
+                        `;
+                    });
+                })
+                .catch(error => console.error('Error cargando servicios:', error));
+        }
+
+        // Configurar fecha mínima para las citas (hoy)
+        document.addEventListener('DOMContentLoaded', function() {
+            const fechaInput = document.getElementById('fechaCita');
+            if (fechaInput) {
+                const hoy = new Date().toISOString().split('T')[0];
+                fechaInput.min = hoy;
+                
+                fechaInput.addEventListener('change', function() {
+                    const establecimientoId = document.getElementById('establecimientoSelect').value;
+                    if (establecimientoId && this.value) {
+                        cargarHorariosDisponibles(establecimientoId, this.value);
+                    }
+                });
+            }
+        });
+
+        function cargarHorariosDisponibles(establecimientoId, fecha) {
+            fetch(`/servicios/api/establecimientos/${establecimientoId}/horarios?fecha=${fecha}`)
+                .then(response => response.json())
+                .then(horarios => {
+                    const select = document.getElementById('horaCita');
+                    select.innerHTML = '<option value="">Seleccionar hora</option>';
+                    
+                    horarios.forEach(hora => {
+                        select.innerHTML += `<option value="${hora}">${hora}</option>`;
+                    });
+                })
+                .catch(error => {
+                    console.error('Error cargando horarios:', error);
+                    document.getElementById('horaCita').innerHTML = '<option value="">No hay horarios disponibles</option>';
+                });
+        }
+
+        // Manejar envío del formulario de reserva
+        document.getElementById('reservaForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Verificar nuevamente autenticación antes de enviar
+            const userMenuExists = document.querySelector('[sec\\:authorize="isAuthenticated()"]') !== null;
+            const loginLink = document.querySelector('a[href*="/login"]');
+            const isAutenticado = !loginLink || userMenuExists;
+            
+            if (!isAutenticado) {
+                alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                window.location.href = '/login?returnUrl=' + encodeURIComponent(window.location.href);
+                return;
+            }
+            
+            const formData = {
+                establecimientoId: document.getElementById('establecimientoSelect').value,
+                servicioId: document.getElementById('servicioSelect').value,
+                fechaHora: document.getElementById('fechaCita').value + 'T' + document.getElementById('horaCita').value,
+                comentarios: document.getElementById('comentariosCita').value
+            };
+            
+            // Validar campos requeridos
+            if (!formData.establecimientoId || !formData.servicioId || !formData.fechaHora.includes('T')) {
+                alert('Por favor, completa todos los campos requeridos.');
+                return;
+            }
+            
+            // Mostrar indicador de carga
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Reservando...';
+            submitBtn.disabled = true;
+            
+            fetch('/cliente/citas/api', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if (response.status === 401) {
+                    throw new Error('No autorizado - sesión expirada');
+                }
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.id) {
+                    alert('¡Cita reservada exitosamente! Código de cita: ' + (data.codigoUnico || data.id));
+                    bootstrap.Modal.getInstance(document.getElementById('modalReserva')).hide();
+                    // Limpiar formulario
+                    document.getElementById('reservaForm').reset();
+                    
+                    // Opcional: redirigir a mis citas
+                    if (confirm('¿Deseas ver tus citas reservadas?')) {
+                        window.location.href = '/cliente/citas';
+                    }
+                } else {
+                    throw new Error(data.error || 'Error desconocido al crear la cita');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                if (error.message.includes('No autorizado') || error.message.includes('sesión expirada')) {
+                    alert('Tu sesión ha expirado. Serás redirigido al login.');
+                    window.location.href = '/login?returnUrl=' + encodeURIComponent(window.location.href);
+                } else {
+                    alert('Error al reservar la cita: ' + error.message + '. Por favor, inténtalo de nuevo.');
+                }
+            })
+            .finally(() => {
+                // Restaurar botón
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+    </script>
 </body>
 </html>
