@@ -44,10 +44,14 @@ public class ConfiguracionSeguridad {
                 .requestMatchers("/css/**", "/js/**", "/img/**", "/favicon.ico").permitAll()
                 // Páginas públicas
                 .requestMatchers("/", "/index", "/registro", "/login", "/acerca", "/contacto").permitAll()
+                // Página de servicios públicos (sin autenticación)
+                .requestMatchers("/servicios", "/servicios/**").permitAll()
                 // Página de acceso denegado y logout
                 .requestMatchers("/acceso-denegado", "/logout").permitAll()
                 // API pública para el login y registro
                 .requestMatchers("/api/auth/**").permitAll()
+                // API pública para servicios (lectura)
+                .requestMatchers("/servicios/api/**").permitAll()
                 // Rutas para administradores
                 .requestMatchers("/admin/**").hasRole("ADMINISTRADOR")
                 // Rutas para ProAdmin
