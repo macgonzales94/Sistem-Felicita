@@ -87,14 +87,6 @@ public interface ServicioRepositorio extends JpaRepository<Servicio, Long> {
 
        /**
         * Buscar servicios por rango de precios en un establecimiento
-        */
-       @Query("SELECT s FROM Servicio s WHERE s.establecimiento.id = :establecimientoId " +
-                     "AND s.precio BETWEEN :precioMin AND :precioMax " +
-                     "ORDER BY s.precio ASC")
-       List<Servicio> findByEstablecimientoIdAndPrecioBetween(@Param("establecimientoId") Long establecimientoId,
-                     @Param("precioMin") java.math.BigDecimal precioMin,
-                     @Param("precioMax") java.math.BigDecimal precioMax);
-
        /**
         * Buscar servicios por duración en un establecimiento
         */

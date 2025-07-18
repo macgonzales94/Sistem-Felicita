@@ -20,6 +20,86 @@
     <!-- Favicon -->
     <link rel="shortcut icon" th:href="@{/favicon.ico}" type="image/x-icon">
 </head>
+
 <body>
+    <!-- Fragmento de navegación para clientes -->
+    <nav th:fragment="cabecera" class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/cliente/inicio}">
+                <i class="fas fa-cut me-2"></i>FELICITA
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarClienteNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarClienteNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/cliente/inicio}" 
+                           th:classappend="${#request.requestURI == '/cliente/inicio'} ? 'active' : ''">
+                            <i class="fas fa-home me-1"></i> Inicio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/cliente/establecimientos}"
+                           th:classappend="${#request.requestURI.startsWith('/cliente/establecimientos')} ? 'active' : ''">
+                            <i class="fas fa-store me-1"></i> Establecimientos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/cliente/citas}"
+                           th:classappend="${#request.requestURI.startsWith('/cliente/citas')} ? 'active' : ''">
+                            <i class="fas fa-calendar-alt me-1"></i> Mis Citas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/cliente/giftcards}"
+                           th:classappend="${#request.requestURI.startsWith('/cliente/giftcards')} ? 'active' : ''">
+                            <i class="fas fa-gift me-1"></i> Gift Cards
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Usuario autenticado -->
+                <ul class="navbar-nav" sec:authorize="isAuthenticated()">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarUsuarioDropdown" 
+                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span sec:authentication="principal.username">usuario@ejemplo.com</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" th:href="@{/cliente/perfil}">
+                                    <i class="fas fa-user me-2"></i> Mi Perfil
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" th:href="@{/cliente/configuracion}">
+                                    <i class="fas fa-cog me-2"></i> Configuración
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" th:href="@{/logout}">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+                
+                <!-- Botón de login si no está autenticado -->
+                <ul class="navbar-nav" sec:authorize="!isAuthenticated()">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/login}">
+                            <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 </body>
 </html>

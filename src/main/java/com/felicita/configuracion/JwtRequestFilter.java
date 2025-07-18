@@ -26,61 +26,78 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private JwtTokenUtil jwtTokenUtil;
     
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest solicitud, HttpServletResponse respuesta, FilterChain filtroChain)
             throws ServletException, IOException {
             
-        // Primero verificamos si hay un token en las cookies
-        String jwtToken = null;
-        String username = null;
+        String tokenJwt = null;
+        String nombreUsuario = null;
         
-        Cookie[] cookies = request.getCookies();
+        // PASO 1: Buscar token en cookies primero
+        Cookie[] cookies = solicitud.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if ("jwtToken".equals(cookie.getName())) {
-                    jwtToken = cookie.getValue();
+                    tokenJwt = cookie.getValue();
+                    logger.debug("Token encontrado en cookie: " + (tokenJwt != null ? "Sí" : "No"));
                     try {
-                        username = jwtTokenUtil.extraerUsername(jwtToken);
+                        if (tokenJwt != null && !tokenJwt.trim().isEmpty()) {
+                            nombreUsuario = jwtTokenUtil.extraerUsername(tokenJwt);
+                            logger.debug("Usuario extraído del token: " + nombreUsuario);
+                        }
                     } catch (Exception e) {
-                        logger.warn("Token JWT en cookie inválido");
+                        logger.warn("Token JWT en cookie inválido: " + e.getMessage());
+                        // Limpiar token inválido
+                        tokenJwt = null;
+                        nombreUsuario = null;
                     }
                     break;
                 }
             }
         }
         
-        // Si no hay un token en las cookies, verificamos en el header Authorization
-        if (username == null) {
-            final String requestTokenHeader = request.getHeader("Authorization");
+        // PASO 2: Si no hay token en cookies, verificar header Authorization
+        if (nombreUsuario == null) {
+            final String cabeceraToken = solicitud.getHeader("Authorization");
             
-            // El token JWT está en el formato "Bearer token"
-            if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
-                jwtToken = requestTokenHeader.substring(7);
+            if (cabeceraToken != null && cabeceraToken.startsWith("Bearer ")) {
+                tokenJwt = cabeceraToken.substring(7);
                 try {
-                    username = jwtTokenUtil.extraerUsername(jwtToken);
+                    if (!tokenJwt.trim().isEmpty()) {
+                        nombreUsuario = jwtTokenUtil.extraerUsername(tokenJwt);
+                        logger.debug("Usuario extraído del header: " + nombreUsuario);
+                    }
                 } catch (Exception e) {
-                    logger.warn("Token JWT inválido en el header");
+                    logger.warn("Token JWT en header inválido: " + e.getMessage());
+                    tokenJwt = null;
+                    nombreUsuario = null;
                 }
-            } else {
-                logger.debug("JWT no comienza con la cadena Bearer o no está presente en el header");
             }
         }
         
-        // Validar el token
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.usuarioDetallesServicio.loadUserByUsername(username);
-            
-            if (jwtTokenUtil.validarToken(jwtToken, userDetails)) {
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = 
-                    new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                        
-                usernamePasswordAuthenticationToken
-                    .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        // PASO 3: Validar token y establecer autenticación
+        if (nombreUsuario != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            try {
+                UserDetails detallesUsuario = this.usuarioDetallesServicio.loadUserByUsername(nombreUsuario);
+                
+                // Validar que el token sea válido
+                if (jwtTokenUtil.validarToken(tokenJwt, detallesUsuario)) {
+                    UsernamePasswordAuthenticationToken tokenAutenticacion = 
+                        new UsernamePasswordAuthenticationToken(
+                            detallesUsuario, null, detallesUsuario.getAuthorities());
+                            
+                    tokenAutenticacion.setDetails(new WebAuthenticationDetailsSource().buildDetails(solicitud));
+                    SecurityContextHolder.getContext().setAuthentication(tokenAutenticacion);
                     
-                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                    logger.debug("Autenticación establecida para usuario: " + nombreUsuario + 
+                               " con roles: " + detallesUsuario.getAuthorities());
+                } else {
+                    logger.warn("Token JWT no válido para usuario: " + nombreUsuario);
+                }
+            } catch (Exception e) {
+                logger.error("Error al procesar autenticación JWT: " + e.getMessage());
             }
         }
         
-        filterChain.doFilter(request, response);
+        filtroChain.doFilter(solicitud, respuesta);
     }
 }

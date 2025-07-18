@@ -27,69 +27,70 @@ public class AutenticacionControladorThymeleaf {
 
     @GetMapping("/login")
     public String mostrarLogin(@RequestParam(value = "error", required = false) String error,
-                              Model model) {
+                              @RequestParam(value = "logout", required = false) String logout,
+                              Model modelo) {
         if (error != null) {
-            model.addAttribute("mensajeError", "Credenciales incorrectas. Por favor intenta de nuevo.");
+            modelo.addAttribute("mensajeError", "Credenciales incorrectas. Por favor intenta de nuevo.");
         }
-        model.addAttribute("loginDTO", new LoginDTO());
+        if (logout != null) {
+            modelo.addAttribute("mensajeInfo", "Has cerrado sesión correctamente.");
+        }
+        modelo.addAttribute("loginDTO", new LoginDTO());
         return "auth/login";
     }
 
     @PostMapping("/login")
     public String procesarLogin(@Valid @ModelAttribute("loginDTO") LoginDTO loginDTO,
-                               BindingResult result,
-                               RedirectAttributes redirectAttributes,
-                               HttpServletResponse response) {
+                               BindingResult resultado,
+                               RedirectAttributes atributosRedireccion,
+                               HttpServletResponse respuesta) {
         
-        if (result.hasErrors()) {
+        if (resultado.hasErrors()) {
             return "auth/login";
         }
         
         try {
-            // Obtener el token JWT
-            JwtResponseDTO respuesta = autenticacionServicio.autenticar(loginDTO);
+            // Autenticar y obtener el token JWT
+            JwtResponseDTO respuestaJwt = autenticacionServicio.autenticar(loginDTO);
             
-            // Almacenar el token JWT en una cookie
-            Cookie jwtCookie = new Cookie("jwtToken", respuesta.getToken());
-            jwtCookie.setPath("/");
-            jwtCookie.setHttpOnly(true); // Para seguridad, no accesible via JavaScript
-            jwtCookie.setMaxAge(86400); // 1 día en segundos
-            response.addCookie(jwtCookie);
+            // Crear cookie JWT con configuración mejorada
+            Cookie cookieJwt = crearCookieJwtSegura(respuestaJwt.getToken());
+            respuesta.addCookie(cookieJwt);
+            
+            // Log para debugging
+            System.out.println("=== LOGIN EXITOSO ===");
+            System.out.println("Usuario: " + respuestaJwt.getEmail());
+            System.out.println("Roles: " + respuestaJwt.getRoles());
+            System.out.println("Token creado y guardado en cookie");
             
             // Redireccionar según el rol del usuario
-            if (respuesta.getRoles().contains("ADMINISTRADOR")) {
-                return "redirect:/admin/dashboard";
-            } else if (respuesta.getRoles().contains("PROADMIN")) {
-                return "redirect:/proadmin/dashboard";
-            } else if (respuesta.getRoles().contains("CLIENTE")) {
-                return "redirect:/cliente/inicio";
-            } else {
-                return "redirect:/";
-            }
+            return redirigirSegunRol(respuestaJwt.getRoles());
             
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("mensajeError", "Credenciales incorrectas. Por favor intenta de nuevo.");
-            return "redirect:/login";
+            atributosRedireccion.addFlashAttribute("mensajeError", 
+                "Credenciales incorrectas. Por favor intenta de nuevo.");
+            return "redirect:/login?error";
         }
     }
 
     @GetMapping("/registro")
-    public String mostrarRegistro(Model model) {
-        model.addAttribute("registroDTO", new RegistroDTO());
+    public String mostrarRegistro(Model modelo) {
+        modelo.addAttribute("registroDTO", new RegistroDTO());
         return "auth/registro";
     }
 
     @PostMapping("/registro")
     public String procesarRegistro(@Valid @ModelAttribute("registroDTO") RegistroDTO registroDTO,
-                                  BindingResult result,
-                                  RedirectAttributes redirectAttributes,
-                                  HttpServletResponse response) {
+                                  BindingResult resultado,
+                                  RedirectAttributes atributosRedireccion,
+                                  HttpServletResponse respuesta) {
+        
         // Validar que las contraseñas coincidan
         if (!registroDTO.getPassword().equals(registroDTO.getConfirmarPassword())) {
-            result.rejectValue("confirmarPassword", "error.registroDTO", "Las contraseñas no coinciden");
+            resultado.rejectValue("confirmarPassword", "error.registroDTO", "Las contraseñas no coinciden");
         }
 
-        if (result.hasErrors()) {
+        if (resultado.hasErrors()) {
             return "auth/registro";
         }
 
@@ -97,37 +98,30 @@ public class AutenticacionControladorThymeleaf {
             // Registrar el usuario
             autenticacionServicio.registrar(registroDTO);
             
-            // NUEVA LÓGICA: Autenticar automáticamente después del registro
+            // Autenticar automáticamente después del registro
             LoginDTO loginDTO = new LoginDTO();
             loginDTO.setEmail(registroDTO.getEmail());
             loginDTO.setPassword(registroDTO.getPassword());
             
-            // Obtener el token JWT para el usuario recién registrado
-            JwtResponseDTO respuesta = autenticacionServicio.autenticar(loginDTO);
+            JwtResponseDTO respuestaJwt = autenticacionServicio.autenticar(loginDTO);
             
-            // Almacenar el token JWT en una cookie
-            Cookie jwtCookie = new Cookie("jwtToken", respuesta.getToken());
-            jwtCookie.setPath("/");
-            jwtCookie.setHttpOnly(true);
-            jwtCookie.setMaxAge(86400); // 1 día en segundos
-            response.addCookie(jwtCookie);
+            // Crear cookie JWT
+            Cookie cookieJwt = crearCookieJwtSegura(respuestaJwt.getToken());
+            respuesta.addCookie(cookieJwt);
             
-            // Redirigir según el rol del usuario
-            if (respuesta.getRoles().contains("ADMINISTRADOR")) {
-                return "redirect:/admin/dashboard";
-            } else if (respuesta.getRoles().contains("PROADMIN")) {
-                return "redirect:/proadmin/dashboard";
-            } else if (respuesta.getRoles().contains("CLIENTE")) {
-                return "redirect:/cliente/inicio";
-            } else {
-                return "redirect:/";
-            }
+            // Log para debugging
+            System.out.println("=== REGISTRO Y LOGIN AUTOMÁTICO ===");
+            System.out.println("Usuario: " + respuestaJwt.getEmail());
+            System.out.println("Roles: " + respuestaJwt.getRoles());
+            
+            return redirigirSegunRol(respuestaJwt.getRoles());
             
         } catch (UsuarioExcepcion e) {
-            redirectAttributes.addFlashAttribute("mensajeError", e.getMessage());
+            atributosRedireccion.addFlashAttribute("mensajeError", e.getMessage());
             return "redirect:/registro";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("mensajeError", "Error durante el registro. Por favor intenta de nuevo.");
+            atributosRedireccion.addFlashAttribute("mensajeError", 
+                "Error durante el registro. Por favor intenta de nuevo.");
             return "redirect:/registro";
         }
     }
@@ -138,14 +132,14 @@ public class AutenticacionControladorThymeleaf {
     }
 
     @GetMapping("/redirect-dashboard")
-    public String redirigirDashboard(HttpServletRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public String redirigirDashboard() {
+        Authentication autenticacion = SecurityContextHolder.getContext().getAuthentication();
         
-        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMINISTRADOR"))) {
+        if (autenticacion.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMINISTRADOR"))) {
             return "redirect:/admin/dashboard";
-        } else if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_PROADMIN"))) {
+        } else if (autenticacion.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_PROADMIN"))) {
             return "redirect:/proadmin/dashboard";
-        } else if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CLIENTE"))) {
+        } else if (autenticacion.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CLIENTE"))) {
             return "redirect:/cliente/inicio";
         } else {
             return "redirect:/";
@@ -153,16 +147,50 @@ public class AutenticacionControladorThymeleaf {
     }
     
     @GetMapping("/logout")
-    public String logout(HttpServletResponse response) {
+    public String logout(HttpServletResponse respuesta) {
         // Eliminar la cookie JWT
         Cookie cookie = new Cookie("jwtToken", null);
         cookie.setPath("/");
         cookie.setMaxAge(0);
-        response.addCookie(cookie);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false); // Cambiar a true en producción con HTTPS
+        respuesta.addCookie(cookie);
         
         // Limpiar el contexto de seguridad
         SecurityContextHolder.clearContext();
         
+        System.out.println("=== LOGOUT ===");
+        System.out.println("Cookie JWT eliminada y contexto limpiado");
+        
         return "redirect:/login?logout";
+    }
+    
+    /**
+     * Crear cookie JWT con configuración de seguridad mejorada
+     */
+    private Cookie crearCookieJwtSegura(String token) {
+        Cookie cookieJwt = new Cookie("jwtToken", token);
+        cookieJwt.setPath("/");                    // Disponible en toda la aplicación
+        cookieJwt.setHttpOnly(true);              // No accesible via JavaScript (seguridad)
+        cookieJwt.setMaxAge(86400);               // 1 día en segundos
+        cookieJwt.setSecure(false);               // true para HTTPS en producción
+        // cookieJwt.setDomain("localhost");      // Especificar dominio si es necesario
+        
+        return cookieJwt;
+    }
+    
+    /**
+     * Redireccionar según los roles del usuario
+     */
+    private String redirigirSegunRol(java.util.Set<String> roles) {
+        if (roles.contains("ADMINISTRADOR")) {
+            return "redirect:/admin/dashboard";
+        } else if (roles.contains("PROADMIN")) {
+            return "redirect:/proadmin/dashboard";
+        } else if (roles.contains("CLIENTE")) {
+            return "redirect:/cliente/inicio";
+        } else {
+            return "redirect:/";
+        }
     }
 }

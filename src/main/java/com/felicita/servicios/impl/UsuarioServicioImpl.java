@@ -5,6 +5,9 @@ import com.felicita.entidades.Usuario;
 import com.felicita.excepciones.RecursoNoEncontradoExcepcion;
 import com.felicita.repositorios.UsuarioRepositorio;
 import com.felicita.servicios.UsuarioServicio;
+
+import scala.collection.mutable.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
