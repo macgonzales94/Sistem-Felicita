@@ -82,7 +82,8 @@ public class AutenticacionControladorThymeleaf {
     @PostMapping("/registro")
     public String procesarRegistro(@Valid @ModelAttribute("registroDTO") RegistroDTO registroDTO,
                                   BindingResult result,
-                                  RedirectAttributes redirectAttributes) {
+                                  RedirectAttributes redirectAttributes,
+                                  HttpServletResponse response) {
         // Validar que las contraseñas coincidan
         if (!registroDTO.getPassword().equals(registroDTO.getConfirmarPassword())) {
             result.rejectValue("confirmarPassword", "error.registroDTO", "Las contraseñas no coinciden");
@@ -93,11 +94,40 @@ public class AutenticacionControladorThymeleaf {
         }
 
         try {
+            // Registrar el usuario
             autenticacionServicio.registrar(registroDTO);
-            redirectAttributes.addFlashAttribute("mensaje", "Registro exitoso. Ahora puedes iniciar sesión.");
-            return "redirect:/login";
+            
+            // NUEVA LÓGICA: Autenticar automáticamente después del registro
+            LoginDTO loginDTO = new LoginDTO();
+            loginDTO.setEmail(registroDTO.getEmail());
+            loginDTO.setPassword(registroDTO.getPassword());
+            
+            // Obtener el token JWT para el usuario recién registrado
+            JwtResponseDTO respuesta = autenticacionServicio.autenticar(loginDTO);
+            
+            // Almacenar el token JWT en una cookie
+            Cookie jwtCookie = new Cookie("jwtToken", respuesta.getToken());
+            jwtCookie.setPath("/");
+            jwtCookie.setHttpOnly(true);
+            jwtCookie.setMaxAge(86400); // 1 día en segundos
+            response.addCookie(jwtCookie);
+            
+            // Redirigir según el rol del usuario
+            if (respuesta.getRoles().contains("ADMINISTRADOR")) {
+                return "redirect:/admin/dashboard";
+            } else if (respuesta.getRoles().contains("PROADMIN")) {
+                return "redirect:/proadmin/dashboard";
+            } else if (respuesta.getRoles().contains("CLIENTE")) {
+                return "redirect:/cliente/inicio";
+            } else {
+                return "redirect:/";
+            }
+            
         } catch (UsuarioExcepcion e) {
             redirectAttributes.addFlashAttribute("mensajeError", e.getMessage());
+            return "redirect:/registro";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensajeError", "Error durante el registro. Por favor intenta de nuevo.");
             return "redirect:/registro";
         }
     }
